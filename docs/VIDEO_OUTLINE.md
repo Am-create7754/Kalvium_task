@@ -29,6 +29,7 @@ Record with the site open in a browser. Show while you speak, and keep each part
 - Add overlap: coral highlights show exactly which words repeat, and redundant words are counted.
 - Compare panel: "Fixed vs sentence" preset shows the cuts side by side.
 - Feedback never says "best", only trade-offs. That is deliberate: real engineers test.
+- **Learn-while-playing layer:** show Chunky reacting, a badge unlocking (e.g. *Bridge Builder* when you add overlap), and the XP bar. Explain that badges reward meaningful experiments, not clicks, so the game reinforces the learning objectives. Mention Calm mode for accessibility.
 
 ### 4:10 – 5:10 · Connecting to a real RAG app
 *Show: RAG simulation.*

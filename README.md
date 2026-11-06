@@ -66,10 +66,25 @@ By the end, learners can:
 - **Feedback, not verdicts:** the Lab, Compare panel and Challenge describe trade-offs. No configuration is ever labelled "best".
 - **Honest simulation:** anything not real (embeddings, vector DB, LLM) is clearly labelled as conceptual or simulated.
 - **Progress & autonomy:** sticky nav, lesson map, 45-minute timeline, per-module "Done · Next", completion summary, and progress saved in the browser.
+- **Play that rewards understanding:** XP and badges are tied to meaningful experiments (using overlap, finding a fragmented answer, passing retrieval tests), so the game loop reinforces the learning goals. Calm mode keeps it accessible.
 
 ---
 
 ## Features
+
+### Learn while playing (`js/fun.js`, `css/fun.css`)
+- **Chunky the mascot:** a small document character that greets each module with a tip, gives hints when tapped, and reacts to what the learner does. It is happy on correct answers, sad on wrong ones, shocked when an answer gets fragmented, and cheers on achievements.
+- **XP and 5 levels** (Chunk Rookie → RAG Master): +20 XP per module, +10 per first-time correct quiz answer, +25 per badge.
+- **10 badges for real learning actions**, not clicks. Examples: *Bridge Builder* (use overlap), *Sentence Surgeon* (sentence chunking with zero mid-sentence cuts), *Fragment Finder* (discover an answer sliced by bad chunking), *Doc Engineer* (pass all 3 challenge tests).
+- **"See it happen" animations:**
+  - The paragraph physically slices into chunk cards (FLIP animation from each sentence's position).
+  - "▶ Play the pipeline" sends a question through all 7 RAG stages.
+  - Score bars rise for every chunk in the RAG simulation.
+  - Stat numbers count up and flash when they change.
+  - Quiz options bounce or shake.
+- **Celebrations:** confetti bursts, floating "+XP", badge and level-up pop-ups, and confetti rain on a perfect quiz or full completion.
+- **Transitions:** scroll-reveal with staggered cards, squishy clay buttons, slider value pops, and a floating hero.
+- **Calm mode** (lesson map → toggle) switches all motion, the mascot and confetti off. It is on by default when the operating system requests reduced motion. Content and features are identical in both modes.
 
 ### Chunking engine (`js/chunking.js`)
 - **Fixed-size word chunking:** with `N` words, size `C`, overlap `O`, and step `S = C − O`, chunk *k* starts at `k·S`. It stops as soon as a chunk reaches the end, so there is never an empty or fully duplicated trailing chunk. Overlap is clamped to `C − 1`, so `S ≥ 1` and the loop always terminates.
@@ -124,13 +139,15 @@ chunklab/
 ├── css/
 │   ├── style.css           # Design tokens, typography, layout, clay surfaces
 │   ├── components.css      # Buttons, controls, lab, RAG, quiz, cards…
-│   └── responsive.css      # Tablet / phone / mid-laptop breakpoints
+│   ├── responsive.css      # Tablet / phone / mid-laptop breakpoints
+│   └── fun.css             # Play-layer styles and animations
 ├── js/
 │   ├── content.js          # Sample texts: lab sample, handbook, challenge doc + tests
 │   ├── chunking.js         # Chunking engine (pure functions, Node + browser)
 │   ├── retrieval.js        # Keyword retrieval simulator (pure functions)
 │   ├── docloader.js        # Own-document upload: extraction + preprocessing
 │   ├── progress.js         # Navigation, lesson map, timeline, progress storage
+│   ├── fun.js              # Mascot, XP, badges, confetti, reveal, calm mode
 │   ├── quiz.js             # Knowledge check
 │   └── app.js              # UI wiring for all interactive modules
 ├── samples/                # Documents to try uploading (PDF, DOCX, TXT, HTML)

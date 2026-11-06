@@ -21,6 +21,7 @@
   ];
   const TOTAL = SECTIONS.reduce((a, s) => a + s.min, 0);   // 45
   const KEY = 'chunklab-progress-v1';
+  const emit = (type, data) => document.dispatchEvent(new CustomEvent('chunklab', { detail: Object.assign({ type: type }, data) }));
 
   let state = load();
   const listeners = [];
@@ -44,11 +45,12 @@
     state.done.push(id);
     save();
     render();
+    emit('module-done', { id: id, all: state.done.length === SECTIONS.length, anchor: document.activeElement });
     if (!silent) toast('✓ ' + SECTIONS.find((s) => s.id === id).title + ' completed');
   }
   function setMeta(k, v) { state.meta = state.meta || {}; state.meta[k] = v; save(); render(); }
   function getMeta(k) { return (state.meta || {})[k]; }
-  function reset() { state = { done: [], meta: {} }; save(); render(); listeners.forEach((f) => f('reset')); }
+  function reset() { state = { done: [], meta: {} }; save(); render(); listeners.forEach((f) => f('reset')); emit('reset', {}); }
   function onChange(f) { listeners.push(f); }
 
   let toastTimer;

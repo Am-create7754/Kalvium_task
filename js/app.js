@@ -17,6 +17,9 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const fmt = (n, d) => (Number.isInteger(n) ? String(n) : n.toFixed(d == null ? 1 : d));
   const debounce = (fn, ms) => { let t; return function () { clearTimeout(t); const a = arguments; t = setTimeout(() => fn.apply(null, a), ms); }; };
+  const emit = (type, data) => document.dispatchEvent(new CustomEvent('chunklab', { detail: Object.assign({ type: type }, data) }));
+  const isCalm = () => !window.Fun || window.Fun.calm();
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const paragraphs = (text) => text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
   /** Keep the slider's filled track in sync with its value. */
@@ -138,6 +141,26 @@
       btns[n].focus(); show(n);
     });
     show(2);
+
+    // ▶ Play: send a question through every stage, one after another.
+    const play = $('#pipePlay');
+    play.addEventListener('click', async () => {
+      play.disabled = true;
+      play.textContent = '▶ Playing…';
+      for (let i = 0; i < btns.length; i++) {
+        show(i);
+        btns[i].classList.add('is-pulse');
+        await wait(isCalm() ? 450 : 1100);
+        btns[i].classList.remove('is-pulse');
+        btns[i].classList.add('is-visited');
+      }
+      await wait(300);
+      btns.forEach((b) => b.classList.remove('is-visited'));
+      show(2);
+      play.disabled = false;
+      play.textContent = '↻ Play again';
+      emit('pipeline-done', {});
+    });
   }
 
   // =================================================================
@@ -145,18 +168,37 @@
   // =================================================================
   function initChunkingModule() {
     const para = paragraphs(C.HANDBOOK)[0];
-    $('#transformDoc').textContent = para;
+    const pre = E.chunkText(para, { strategy: 'sentence', size: 25, overlap: 0 });
+    // The paragraph is rendered as one span per future chunk, so each card can
+    // fly out of the exact place its text came from (FLIP animation).
+    $('#transformDoc').innerHTML = pre.chunks.map((c) => '<span class="t-src">' + esc(c.text) + '</span>').join(' ');
     const btn = $('#transformBtn');
     btn.addEventListener('click', () => {
       const on = btn.getAttribute('aria-pressed') !== 'true';
       btn.setAttribute('aria-pressed', String(on));
       btn.textContent = on ? 'Show original ↺' : 'Chunk it ✂';
+      const from = $$('.t-src').map((sp) => sp.getBoundingClientRect());
       $('#transformDoc').hidden = on;
       const box = $('#transformChunks');
       box.hidden = !on;
       if (on) {
-        const out = E.chunkText(para, { strategy: 'sentence', size: 25, overlap: 0 });
-        box.innerHTML = out.chunks.map((c) => '<div class="t-chunk" style="--i:' + c.index + '"><b>CHUNK ' + (c.index + 1) + ' · ' + c.wordCount + ' words</b>' + esc(c.text) + '</div>').join('');
+        const out = pre;
+        const animate = !isCalm() && typeof Element.prototype.animate === 'function';
+        box.innerHTML = out.chunks.map((c) => '<div class="t-chunk' + (animate ? ' no-pop' : '') + '" style="--i:' + c.index + '"><b>CHUNK ' + (c.index + 1) + ' · ' + c.wordCount + ' words</b>' + esc(c.text) + '</div>').join('');
+        if (animate) {
+          const stage = $('#transformStage');
+          stage.classList.remove('is-snipping'); void stage.offsetWidth; stage.classList.add('is-snipping');
+          $$('.t-chunk', box).forEach((card, i) => {
+            const to = card.getBoundingClientRect(), fr = from[i];
+            if (!fr || !to.width) return;
+            card.animate([
+              { transform: 'translate(' + (fr.left - to.left) + 'px,' + (fr.top - to.top) + 'px) scale(' + Math.max(.3, fr.width / to.width) + ',' + Math.max(.3, fr.height / to.height) + ')', opacity: .3 },
+              { transform: 'translateY(-10px) rotate(' + (i % 2 ? 2 : -2) + 'deg)', opacity: 1, offset: .7 },
+              { transform: 'none', opacity: 1 }
+            ], { duration: 750, delay: 250 + i * 140, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+          });
+        }
+        emit('transform', { n: out.chunks.length });
         $('#transformNote').textContent = 'One paragraph → ' + out.chunks.length + ' chunks (sentence-based, up to 25 words each). Each chunk can now be stored and searched on its own.';
       } else {
         $('#transformNote').textContent = 'This is one paragraph from our sample handbook (Attendance Policy).';
@@ -262,6 +304,7 @@
         lab.generated = true;
         generate(true);
         P.toast('Loaded “' + res.name + '” — now experiment with the dials');
+        emit('upload', { anchor: $('#labUpload') });
       }
     });
     $('#labClear').addEventListener('click', () => { input.value = ''; counts(); if (lab.generated) generate(); input.focus(); });
@@ -314,6 +357,7 @@
     lab.last = out;
     $('#labFeedback').innerHTML = labFeedback(out);
     if (fromButton && P) { P.markDone('lab'); }
+    if (!initial && st.totalWords) emit('lab-generate', { overlap: out.settings.overlap, redundant: st.redundantWords, strategy: out.settings.strategy, cuts: st.midSentenceBreaks, chunks: st.chunkCount });
     renderCompare();
   }
 
@@ -382,7 +426,7 @@
       bindRange(ov, $('#cmpOvV' + k), (v) => { cmp[k].overlap = v; renderCompare(); });
       limitOverlap(size, ov, $('#cmpOvV' + k));
     });
-    $$('#comparePresets .chip').forEach((b) => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+    $$('#comparePresets .chip').forEach((b) => b.addEventListener('click', () => { applyPreset(b.dataset.preset); emit('compare', {}); }));
     applyPreset('overlap');
   }
 
@@ -546,7 +590,7 @@
 
     window.DocLoader.attach({
       button: $('#ragUpload'), dropzone: $('#ragDrop'), status: $('#ragUploadStatus'),
-      onLoad: (res) => { $('#ragCustomText').value = res.text; setCustomDoc(res.text, res.name); }
+      onLoad: (res) => { $('#ragCustomText').value = res.text; setCustomDoc(res.text, res.name); emit('upload', { anchor: $('#ragUpload') }); }
     });
     $('#ragFromLab').addEventListener('click', () => {
       const cleaned = window.DocLoader.cleanText($('#labInput').value);
@@ -597,7 +641,14 @@
     if (!r.results.length) {
       steps.push({ t: 'Score every chunk', b: '<div class="fb fb--warn"><div>No chunk shares a keyword with your question. Keyword search only finds exact words. A production RAG system using <b>embeddings</b> could still match by meaning. Try ' + (rag.src === 'sample' ? 'a sample question, or use words from the handbook.' : 'a suggested topic, or use words that appear in your document.') + '</div></div>' });
     } else {
-      steps.push({ t: 'Score chunks and retrieve the top ' + r.results.length, b: '<p class="small">Each chunk gets points for every keyword it contains; rarer keywords are worth more (TF-IDF style).</p>' +
+      // Score bar for EVERY chunk — real scores, so students see the "competition".
+      const all = R.scoreChunks(out.chunks, r.terms.all).slice(0, 400);
+      const max = Math.max.apply(null, all.map((a) => a.score).concat([0.0001]));
+      const topIdx = new Set(r.results.map((x) => x.chunk.index));
+      const heat = '<div class="heat" role="img" aria-label="Score of each of the ' + all.length + ' chunks; the top ' + r.results.length + ' are highlighted">' +
+        all.map((a, i) => '<span class="heat__bar' + (topIdx.has(i) ? ' is-top' : '') + '" style="--h:' + Math.max(4, (a.score / max) * 100).toFixed(1) + '%;--i:' + i + '" title="Chunk ' + (i + 1) + ': score ' + a.score.toFixed(2) + '"></span>').join('') +
+        '</div><p class="tiny muted">Each bar is one chunk, and its height is the score. The coral bars are the top ' + r.results.length + ' that get retrieved.</p>';
+      steps.push({ t: 'Score all ' + out.stats.chunkCount + ' chunks and retrieve the top ' + r.results.length, b: '<p class="small">Each chunk gets points for every keyword it contains; rarer keywords are worth more (TF-IDF style).</p>' + heat +
         r.results.map((x, i) =>
           '<div class="ret-card"><div class="ret-card__head"><span class="chunk-card__n">#' + (i + 1) + ' · Chunk ' + (x.chunk.index + 1) + '</span>' +
           '<span class="ret-card__score">score ' + x.score.toFixed(2) + ' <i style="--s:' + Math.round((x.score / top) * 100) + '%"></i></span></div>' +
@@ -625,6 +676,7 @@
       '<li class="rs" style="--i:' + i + '"><span class="rs__n">' + (i + 1) + '</span><div class="rs__body"><h4>' + s.t + '</h4>' + s.b + '</div></li>'
     ).join('') + '</ol>' + frag;
     if (P) P.markDone('rag', P.isDone('rag'));
+    emit('rag-ask', { found: r.results.length > 0, fragmented: !!(r.fragmentation && r.results.length && !r.fragmentation.intactInAnyChunk) });
   }
 
   // =================================================================
@@ -728,6 +780,7 @@
     box.innerHTML = fb.join('');
 
     if (P) { P.setMeta('challenge', { passed: res.passed, total: 3 }); P.markDone('challenge'); }
+    emit('challenge', { passed: res.passed });
   }
 
   // =================================================================

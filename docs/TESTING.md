@@ -40,6 +40,18 @@ Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 | 29 | Use Lab text / back to sample | Lab text loads into RAG; switching back restores the 5 sample questions | ✅ |
 | 30 | Large documents | 50,000-word cap with notice; Lab shows the first 200 chunk cards and the first 4,000 map words; stats include everything | ✅ |
 
+### Play layer checks
+| # | Check | How to verify | Result |
+|---|---|---|---|
+| 31 | Mascot | Greets each module once, shows a new tip when tapped, reacts with the right mood (sad on wrong answers, happy on right ones, shocked on fragmentation) | ✅ |
+| 32 | Badges | Earned only by the matching action; each shows a pop-up once; the shelf in the lesson map and completion card updates | ✅ |
+| 33 | XP & levels | +20 per module, +10 per first-time correct quiz answer (no farming on retake), +25 per badge; level-up pop-up | ✅ |
+| 34 | Animations | Paragraph slices into cards, pipeline play visits all 7 stages, score bars for every chunk, count-up stats | ✅ |
+| 35 | Celebration | Completing every module: Champion badge, confetti rain, mascot cheer | ✅ |
+| 36 | Calm mode | Toggle removes the mascot and all keyframe animation; the preference persists; reduced-motion users start in calm mode | ✅ |
+| 37 | Reset | "Reset my progress" also resets XP and badges | ✅ |
+| 38 | Mobile | Top bar (XP, progress, menu) fits at 375px; mascot shrinks | ✅ |
+
 ### Content integrity
 - Every illustrative answer in the RAG simulation is copied word-for-word from `HANDBOOK` in `js/content.js`.
 - Every challenge test answer exists verbatim in `CHALLENGE_DOC` (unit-tested).

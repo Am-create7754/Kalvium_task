@@ -74,3 +74,5 @@
   .progress-pill .hide-sm { display: none; }
   #mapToggle span { display: none; }
 }
+
+@media (max-width: 1440px) { .xp-pill__lv { display: none; } }

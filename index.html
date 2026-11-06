@@ -9,9 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=2" />
-  <link rel="stylesheet" href="css/components.css?v=2" />
-  <link rel="stylesheet" href="css/responsive.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
+  <link rel="stylesheet" href="css/components.css?v=4" />
+  <link rel="stylesheet" href="css/responsive.css?v=4" />
+  <link rel="stylesheet" href="css/fun.css?v=5" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to lesson</a>
@@ -29,6 +30,9 @@
       </nav>
 
       <div class="topbar__actions">
+        <button class="xp-pill" id="xpPill" type="button" aria-label="Your XP, level and badges">
+          <span class="xp-pill__star" aria-hidden="true">⭐</span><b id="xpVal">0</b><span class="xp-pill__lv"> XP · <span id="xpLevel">Chunk Rookie</span></span>
+        </button>
         <div class="progress-pill" aria-live="polite">
           <span class="progress-pill__ring" id="progressRing" style="--p:0"></span>
           <span><b id="progressPct">0%</b> <span class="hide-sm">complete</span></span>
@@ -50,7 +54,14 @@
         <button class="icon-btn" id="mapClose" aria-label="Close lesson map">✕</button>
       </div>
       <p class="muted">45 minutes · self-paced. Jump anywhere — your progress is saved in this browser.</p>
+      <div class="fun-panel">
+        <div class="fun-panel__row"><b class="h-sm" data-xp-level>Chunk Rookie · 0 XP</b><span class="tiny muted">Badges <b data-badge-count>0/10</b></span></div>
+        <div class="xp-track"><span data-xp-bar></span></div>
+        <p class="tiny muted" data-xp-next></p>
+        <ul class="badge-shelf" data-badge-shelf aria-label="Badges"></ul>
+      </div>
       <ol class="map-list" id="mapList"><!-- filled by progress.js --></ol>
+      <button class="btn btn--ghost btn--sm calm-toggle" type="button" data-calm-toggle aria-pressed="false">🎈 Play mode</button>
       <button class="btn btn--ghost btn--sm" id="resetProgress">Reset my progress</button>
     </div>
     <div class="drawer__scrim" id="mapScrim"></div>
@@ -186,7 +197,10 @@
           </div>
         </div>
 
-        <h3 class="h-md">The RAG pipeline <span class="muted small">— click a stage</span></h3>
+        <div class="pipe-head">
+          <h3 class="h-md">The RAG pipeline <span class="muted small">— click a stage, or press play</span></h3>
+          <button class="btn btn--coral btn--sm" type="button" id="pipePlay">▶ Play the pipeline</button>
+        </div>
         <div class="pipeline" id="pipeline" role="tablist" aria-label="RAG pipeline stages"><!-- app.js --></div>
         <div class="pipeline-detail clay" id="pipelineDetail" role="tabpanel" aria-live="polite"></div>
 
@@ -221,6 +235,7 @@
             <button class="btn btn--primary btn--sm" id="transformBtn" aria-pressed="false">Chunk it ✂</button>
           </div>
           <div class="transform" id="transformStage">
+            <span class="snip-line" aria-hidden="true">✂</span>
             <div class="transform__doc" id="transformDoc"></div>
             <div class="transform__chunks" id="transformChunks" hidden></div>
           </div>
@@ -693,6 +708,8 @@ chunks = splitter.split_text(handbook_text)
               <div><span class="big mono" id="cmpChallenge">–</span><span>challenge</span></div>
             </div>
             <p id="completeMsg">Finish the remaining modules to complete ChunkLab.</p>
+            <p class="tiny" style="color:#BFE0D8;margin-bottom:0"><span data-xp-level>Chunk Rookie · 0 XP</span> · badges <span data-badge-count>0/10</span></p>
+            <ul class="badge-shelf" data-badge-shelf aria-label="Badges earned"></ul>
             <div class="btn-row">
               <button class="btn btn--coral" id="finishBtn">Mark lesson complete</button>
               <a href="#lab" class="btn btn--ghost-light">Back to the Lab</a>
@@ -712,13 +729,15 @@ chunks = splitter.split_text(handbook_text)
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="badge-pop" id="badgePop" role="status" aria-live="polite"></div>
 
-  <script src="js/content.js?v=2"></script>
-  <script src="js/chunking.js?v=2"></script>
-  <script src="js/retrieval.js?v=2"></script>
-  <script src="js/docloader.js?v=2"></script>
-  <script src="js/progress.js?v=2"></script>
-  <script src="js/quiz.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="js/content.js?v=4"></script>
+  <script src="js/chunking.js?v=4"></script>
+  <script src="js/retrieval.js?v=4"></script>
+  <script src="js/docloader.js?v=4"></script>
+  <script src="js/progress.js?v=4"></script>
+  <script src="js/quiz.js?v=4"></script>
+  <script src="js/fun.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>

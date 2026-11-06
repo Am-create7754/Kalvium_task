@@ -78,6 +78,7 @@
   const root = document.getElementById('quizRoot');
   let i = 0, score = 0, picked = null, submitted = false, history = [];
   const K = ['A', 'B', 'C', 'D'];
+  const emit = (type, data) => document.dispatchEvent(new CustomEvent('chunklab', { detail: Object.assign({ type: type }, data) }));
 
   function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -139,6 +140,7 @@
     const last = i === QUESTIONS.length - 1;
     root.querySelector('.quiz__nav').innerHTML = '<button class="btn btn--primary" id="qNext">' + (last ? 'See my results' : 'Next question →') + '</button>';
     root.querySelector('#qNext').focus();
+    emit('quiz-answer', { correct: correct, i: i, anchor: root.querySelector('.opt.is-correct') });
   }
 
   function next() {
@@ -167,6 +169,7 @@
       window.Progress.setMeta('quiz', { score: score, total: QUESTIONS.length });
       window.Progress.markDone('quiz');
     }
+    emit('quiz-finish', { score: score, total: QUESTIONS.length });
   }
 
   function retake() { i = 0; score = 0; history = []; renderQuestion(); root.querySelector('.opt').focus(); }
