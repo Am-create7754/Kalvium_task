@@ -108,8 +108,8 @@
     });
 
     const stages = [
-      { t: 'Document', tag: 'concept', d: 'The source file — a PDF handbook, a web page, a Word document. This is the knowledge we want the AI to use.' },
-      { t: 'Text extraction', tag: 'concept', d: 'Software pulls the plain text out of the file and cleans it: removing page numbers, headers, broken line-breaks, and extra spaces. Garbage in here means garbage everywhere after.' },
+      { t: 'Document', tag: 'live', d: 'The source file — a PDF handbook, a web page, a Word document. This is the knowledge we want the AI to use. In ChunkLab you can upload your own in the Lab and the RAG simulation.' },
+      { t: 'Text extraction', tag: 'live', d: 'Software pulls the plain text out of the file and cleans it: removing page numbers, broken hyphenation, wrapped lines, and extra spaces. Garbage in here means garbage everywhere after. Upload a PDF or Word file in the Lab to see the cleanup report. (Scanned PDFs need OCR, which ChunkLab does not do.)' },
       { t: 'Chunking', tag: 'live', focus: true, d: 'The clean text is split into small, meaningful pieces called chunks. This is what you will master today — and what you can try live in the Lab.' },
       { t: 'Embeddings', tag: 'concept', d: 'Each chunk is turned into an embedding: a list of numbers that captures its meaning, so chunks with similar meaning get similar numbers. (A topic for another lesson.)' },
       { t: 'Vector database', tag: 'concept', d: 'The embeddings are stored in a database built to quickly find the vectors most similar to a query vector.' },
@@ -249,8 +249,21 @@
     bindSeg($('#labStrategy'), 'strategy', (v) => { lab.strategy = v; formula(); auto(); });
     bindSeg($('#labOutput .seg'), 'view', (v) => { lab.view = v; $('#labChunks').hidden = v !== 'cards'; $('#labMap').hidden = v !== 'map'; });
 
-    input.addEventListener('input', () => { counts(); debounce(() => { if (lab.generated) generate(); }, 350)(); });
-    $('#labRestore').addEventListener('click', () => { input.value = C.LAB_SAMPLE; counts(); if (lab.generated) generate(); P.toast('Sample document restored'); });
+    const regenOnType = debounce(() => { if (lab.generated) generate(); }, 350);
+    input.addEventListener('input', () => { counts(); regenOnType(); });
+    $('#labRestore').addEventListener('click', () => { input.value = C.LAB_SAMPLE; $('#labUploadStatus').innerHTML = ''; counts(); if (lab.generated) generate(); P.toast('Sample document restored'); });
+
+    // Bring your own document: upload or drag & drop (text extracted in the browser).
+    window.DocLoader.attach({
+      button: $('#labUpload'), dropzone: $('#labDrop'), status: $('#labUploadStatus'),
+      onLoad: (res) => {
+        input.value = res.text;
+        counts();
+        lab.generated = true;
+        generate(true);
+        P.toast('Loaded “' + res.name + '” — now experiment with the dials');
+      }
+    });
     $('#labClear').addEventListener('click', () => { input.value = ''; counts(); if (lab.generated) generate(); input.focus(); });
     $('#labGenerate').addEventListener('click', () => { lab.generated = true; generate(true); });
 
@@ -276,7 +289,10 @@
       $('#labChunks').innerHTML = '<div class="empty-out">Your document is empty. Type or paste some text, or press <b>Restore sample</b>.</div>';
       $('#labMap').innerHTML = '<p class="muted">Nothing to show yet.</p>';
     } else {
-      $('#labChunks').innerHTML = out.chunks.map((c) => chunkCard(c)).join('');
+      // Large uploaded documents: render a capped number of cards (stats still use ALL chunks).
+      const CAP = 200;
+      $('#labChunks').innerHTML = out.chunks.slice(0, CAP).map((c) => chunkCard(c)).join('') +
+        (out.chunks.length > CAP ? '<p class="cap-note">Showing the first ' + CAP + ' of ' + out.chunks.length.toLocaleString() + ' chunks. The statistics above include every chunk.</p>' : '');
       $('#labMap').innerHTML = textMap(out);
     }
 
@@ -307,11 +323,12 @@
     const owner = new Array(out.words.length).fill(-1);
     out.chunks.forEach((c) => { for (let i = c.start; i < c.end; i++) { cover[i]++; if (owner[i] < 0) owner[i] = c.index; } });
     const starts = new Map(out.chunks.map((c) => [c.start, c.index]));
-    return out.words.map((w, i) => {
+    const LIMIT = 4000;   // keep the map fast for long uploaded documents
+    return out.words.slice(0, LIMIT).map((w, i) => {
       const mark = starts.has(i) ? '<span class="tm-break" aria-label="Chunk ' + (starts.get(i) + 1) + ' starts">▸' + (starts.get(i) + 1) + '</span>' : '';
       const cls = cover[i] > 1 ? 'tm-ov' : (owner[i] % 2 ? 'tm-b' : 'tm-a');
       return mark + '<span class="tm-w ' + cls + '">' + esc(w) + '</span>';
-    }).join(' ');
+    }).join(' ') + (out.words.length > LIMIT ? '<p class="cap-note">Showing the first ' + LIMIT.toLocaleString() + ' of ' + out.words.length.toLocaleString() + ' words.</p>' : '');
   }
 
   /** Contextual feedback — describes the trade-offs, never declares a "best". */
@@ -392,7 +409,9 @@
       const st = o.stats;
       $('#cmpStats' + k).innerHTML = statTile(st.chunkCount, 'chunks') + statTile(fmt(st.avgChunkSize), 'avg words') +
         statTile(st.redundantWords, 'redundant', true) + statTile(st.midSentenceBreaks, 'mid-sentence cuts', true);
-      $('#cmpOut' + k).innerHTML = o.chunks.length ? o.chunks.map(rowChunk).join('') : '<p class="muted small">No text in the editor.</p>';
+      $('#cmpOut' + k).innerHTML = o.chunks.length
+        ? o.chunks.slice(0, 80).map(rowChunk).join('') + (o.chunks.length > 80 ? '<p class="cap-note">First 80 of ' + o.chunks.length + ' chunks shown.</p>' : '')
+        : '<p class="muted small">No text in the editor.</p>';
     });
     const a = res.A.stats, b = res.B.stats, sa = res.A.settings, sb = res.B.settings;
     const lines = [];
@@ -409,18 +428,85 @@
   }
 
   // =================================================================
-  // MODULE 5 — RAG simulation
+  // MODULE 5 — RAG simulation (sample handbook OR the learner's own document)
   // =================================================================
-  const rag = { strategy: 'sentence', size: 40, overlap: 0, query: '' };
+  const rag = { strategy: 'sentence', size: 40, overlap: 0, query: '', src: 'sample', customText: '', customName: '' };
   const RAG_PRESETS = { good: { strategy: 'sentence', size: 40, overlap: 0 }, poor: { strategy: 'fixed', size: 8, overlap: 0 }, overlap: { strategy: 'fixed', size: 25, overlap: 8 } };
+  let ragChanged = () => {};
+  let ragSrcSeg = null;
+
+  /** The text the simulation is currently searching. */
+  function ragDoc() { return rag.src === 'custom' ? rag.customText : C.HANDBOOK; }
+
+  /**
+   * Suggest questions for an unknown document: the most frequent meaningful
+   * keywords (computed, not hard-coded), shown in their most common spelling.
+   */
+  function topKeywords(text, n) {
+    const counts = new Map(), surface = new Map();
+    E.toWords(text).forEach((w) => {
+      const t = R.normalize(w);
+      if (!t || t.length < 4 || /^\d/.test(t)) return;
+      counts.set(t, (counts.get(t) || 0) + 1);
+      const s = w.toLowerCase().replace(/[^a-z0-9%-]/g, '');
+      const m = surface.get(t) || new Map();
+      m.set(s, (m.get(s) || 0) + 1);
+      surface.set(t, m);
+    });
+    return Array.from(counts.entries())
+      .filter((e) => e[1] >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n)
+      .map((e) => Array.from(surface.get(e[0]).entries()).sort((a, b) => b[1] - a[1])[0][0]);
+  }
+
+  function renderRagDoc() {
+    const custom = rag.src === 'custom';
+    const text = ragDoc();
+    $('#docViewTitle').innerHTML = custom
+      ? 'View your document <span class="muted small">' + (rag.customName ? '(' + esc(rag.customName) + ')' : '') + '</span>'
+      : 'View the sample handbook <span class="muted small">(fictional university)</span>';
+    $('#ragDocBadge').textContent = custom ? '— about ' + (rag.customName || 'your document') : '— about the sample handbook';
+    $('#ragQuery').placeholder = custom ? 'Ask something your document answers…' : 'e.g. What is the minimum attendance required?';
+
+    if (!text) {
+      $('#handbookView').innerHTML = '<p class="muted">No document yet — upload a file, paste text, or use the Lab text.</p>';
+    } else if (custom) {
+      const paras = paragraphs(text);
+      $('#handbookView').innerHTML = paras.slice(0, 80).map((p) => '<p>' + esc(p) + '</p>').join('') +
+        (paras.length > 80 ? '<p class="muted small">… ' + (paras.length - 80) + ' more paragraphs not shown (all are searched).</p>' : '');
+    } else {
+      $('#handbookView').innerHTML = paragraphs(text).map((p) => {
+        const m = p.match(/^([^.]+\.)\s*(.*)$/);
+        return m ? '<p><b>' + esc(m[1]) + '</b> ' + esc(m[2]) + '</p>' : '<p>' + esc(p) + '</p>';
+      }).join('');
+    }
+
+    if (!custom) {
+      $('#ragSamples').innerHTML = '<span class="chips__label">Sample questions</span>' +
+        C.SAMPLE_QUESTIONS.map((q) => '<button type="button" class="chip" data-q="' + esc(q) + '">' + esc(q) + '</button>').join('');
+    } else {
+      const kws = text ? topKeywords(text, 6) : [];
+      $('#ragSamples').innerHTML = kws.length
+        ? '<span class="chips__label">Frequent topics in your document — or type your own question</span>' +
+          kws.map((k) => { const q = 'Tell me about ' + k; return '<button type="button" class="chip" data-q="' + esc(q) + '">' + esc(q) + '</button>'; }).join('')
+        : (text ? '<span class="chips__label">Tip: use words that actually appear in your document — keyword search matches exact words.</span>' : '');
+    }
+  }
+
+  function resetRagResult(msg) {
+    rag.query = '';
+    $('#ragResult').innerHTML = '<div class="empty clay clay--beige"><p>' + msg + '</p></div>';
+  }
+
+  function setCustomDoc(text, name) {
+    rag.customText = text;
+    rag.customName = name || 'pasted text';
+    if (rag.src !== 'custom') ragSrcSeg.select('custom'); else { renderRagDoc(); ragChanged(true); }
+    resetRagResult(text ? 'Your document is chunked and ready. Pick a suggested topic or type a question.' : 'Upload or paste a document to begin.');
+  }
 
   function initRag() {
-    $('#handbookView').innerHTML = paragraphs(C.HANDBOOK).map((p) => {
-      const m = p.match(/^([^.]+\.)\s*(.*)$/);
-      return '<p><b>' + esc(m[1]) + '</b> ' + esc(m[2]) + '</p>';
-    }).join('');
-    $('#ragSamples').innerHTML = C.SAMPLE_QUESTIONS.map((q) => '<button type="button" class="chip" data-q="' + esc(q) + '">' + esc(q) + '</button>').join('');
-
     const size = $('#ragSize'), ov = $('#ragOverlap');
     const seg = bindSeg($('#ragStrategy'), 'strategy', (v) => { rag.strategy = v; changed(); });
     bindRange(size, $('#ragSizeVal'), (v) => { rag.size = v; limitOverlap(size, ov, $('#ragOverlapVal')); rag.overlap = Number(ov.value); changed(); });
@@ -429,13 +515,16 @@
 
     function changed(fromPreset) {
       if (!fromPreset) $$('[data-rag-preset]').forEach((b) => b.classList.remove('is-on'));
-      const out = E.chunkText(C.HANDBOOK, rag);
-      $('#ragChunkInfo').textContent = '→ ' + out.stats.chunkCount + ' chunks · avg ' + fmt(out.stats.avgChunkSize) + ' words · ' + out.stats.midSentenceBreaks + ' cut mid-sentence';
+      const out = E.chunkText(ragDoc(), rag);
+      $('#ragChunkInfo').textContent = out.stats.totalWords
+        ? '→ ' + out.stats.chunkCount + ' chunks · avg ' + fmt(out.stats.avgChunkSize) + ' words · ' + out.stats.midSentenceBreaks + ' cut mid-sentence'
+        : '→ no document loaded yet';
       if (rag.query) ask(rag.query);
     }
+    ragChanged = changed;
+
     $$('[data-rag-preset]').forEach((b) => b.addEventListener('click', () => {
       const p = RAG_PRESETS[b.dataset.ragPreset];
-      $$('[data-rag-preset]').forEach((x) => x.classList.toggle('is-on', x === b));
       Object.assign(rag, p);
       size.value = p.size; $('#ragSizeVal').textContent = p.size; fill(size);
       limitOverlap(size, ov);
@@ -445,6 +534,35 @@
       changed(true);
     }));
 
+    // Document source: sample handbook vs own document
+    ragSrcSeg = bindSeg($('#ragSource'), 'src', (v) => {
+      rag.src = v;
+      $('#ragCustom').hidden = v !== 'custom';
+      renderRagDoc();
+      changed(true);
+      if (v === 'custom') resetRagResult(rag.customText ? 'Using your document. Pick a suggested topic or type a question.' : 'Upload a file, paste text, or reuse the Lab text — then ask a question about it.');
+      else resetRagResult('Pick a sample question or type your own to start the simulation.');
+    });
+
+    window.DocLoader.attach({
+      button: $('#ragUpload'), dropzone: $('#ragDrop'), status: $('#ragUploadStatus'),
+      onLoad: (res) => { $('#ragCustomText').value = res.text; setCustomDoc(res.text, res.name); }
+    });
+    $('#ragFromLab').addEventListener('click', () => {
+      const cleaned = window.DocLoader.cleanText($('#labInput').value);
+      if (!cleaned.text) { $('#ragUploadStatus').innerHTML = '<div class="fb fb--warn"><div>The Lab editor is empty.</div></div>'; return; }
+      $('#ragCustomText').value = cleaned.text;
+      $('#ragUploadStatus').innerHTML = '<div class="fb fb--good"><div>Using the text from the Chunking Lab (' + cleaned.text.split(/\s+/).length + ' words).</div></div>';
+      setCustomDoc(cleaned.text, 'Lab text');
+    });
+    $('#ragUseText').addEventListener('click', () => {
+      const cleaned = window.DocLoader.cleanText($('#ragCustomText').value);
+      if (!cleaned.text) { $('#ragUploadStatus').innerHTML = '<div class="fb fb--warn"><div>Paste some text first.</div></div>'; return; }
+      $('#ragCustomText').value = cleaned.text;
+      $('#ragUploadStatus').innerHTML = '<div class="fb fb--good"><div>' + cleaned.text.split(/\s+/).length + ' words ready. Preprocessing: ' + window.DocLoader.describeReport(cleaned.report) + '.</div></div>';
+      setCustomDoc(cleaned.text, 'pasted text');
+    });
+
     $('#ragSamples').addEventListener('click', (e) => {
       const c = e.target.closest('[data-q]');
       if (!c) return;
@@ -452,29 +570,32 @@
       ask(c.dataset.q);
     });
     $('#ragForm').addEventListener('submit', (e) => { e.preventDefault(); ask($('#ragQuery').value); });
+    renderRagDoc();
     changed(true);
   }
 
   function ask(query) {
     const q = String(query || '').trim();
     const box = $('#ragResult');
-    if (!q) { box.innerHTML = '<div class="fb fb--warn"><div>Type a question first, or pick one of the sample questions.</div></div>'; return; }
+    if (rag.src === 'custom' && !rag.customText) { box.innerHTML = '<div class="fb fb--warn"><div>Load your document first: upload a file, paste text, or use the Lab text.</div></div>'; return; }
+    if (!q) { box.innerHTML = '<div class="fb fb--warn"><div>Type a question first' + (rag.src === 'sample' ? ', or pick one of the sample questions' : '') + '.</div></div>'; return; }
     rag.query = q;
-    const r = R.retrieve(C.HANDBOOK, q, rag, 3);
+    const r = R.retrieve(ragDoc(), q, rag, 3);
     const out = r.chunking;
     const top = r.results[0] ? r.results[0].score : 1;
     const kwSet = new Set(r.terms.all);
     const hl = (words) => words.map((w) => kwSet.has(R.normalize(w)) ? '<mark class="kw">' + esc(w) + '</mark>' : esc(w)).join(' ');
+    const docName = rag.src === 'custom' ? 'your document' : 'the handbook';
 
     const steps = [];
-    steps.push({ t: 'Chunk the handbook', b: '<p>' + (rag.strategy === 'fixed' ? 'Fixed-size' : 'Sentence-based') + ' chunking, size ' + out.settings.size + ', overlap ' + out.settings.overlap + ' → <b>' + out.stats.chunkCount + ' chunks</b> of about ' + fmt(out.stats.avgChunkSize) + ' words.</p>' });
+    steps.push({ t: 'Chunk ' + docName, b: '<p>' + (rag.strategy === 'fixed' ? 'Fixed-size' : 'Sentence-based') + ' chunking, size ' + out.settings.size + ', overlap ' + out.settings.overlap + ' → <b>' + out.stats.chunkCount + ' chunks</b> of about ' + fmt(out.stats.avgChunkSize) + ' words.</p>' });
 
     const termsHTML = r.terms.base.map((t) => '<span class="term-chip">' + esc(t) + '</span>').join('') +
       r.terms.expanded.map((e) => '<span class="term-chip term-chip--exp">' + esc(e.term) + ' <small>(from "' + esc(e.from) + '")</small></span>').join('');
     steps.push({ t: 'Turn the question into keywords', b: '<p class="small">Filler words like "what", "is", "the" are removed, and words are reduced to a simple root (e.g. "timings" → "timing").' + (r.terms.expanded.length ? ' Grey terms come from a small hand-written synonym list — keyword search cannot understand meaning on its own.' : '') + '</p>' + (termsHTML || '<p class="muted small">No meaningful keywords found.</p>') });
 
     if (!r.results.length) {
-      steps.push({ t: 'Score every chunk', b: '<div class="fb fb--warn"><div>No chunk shares a keyword with your question. Keyword search only finds exact words. A production RAG system using <b>embeddings</b> could still match by meaning. Try a sample question, or use words from the handbook.</div></div>' });
+      steps.push({ t: 'Score every chunk', b: '<div class="fb fb--warn"><div>No chunk shares a keyword with your question. Keyword search only finds exact words. A production RAG system using <b>embeddings</b> could still match by meaning. Try ' + (rag.src === 'sample' ? 'a sample question, or use words from the handbook.' : 'a suggested topic, or use words that appear in your document.') + '</div></div>' });
     } else {
       steps.push({ t: 'Score chunks and retrieve the top ' + r.results.length, b: '<p class="small">Each chunk gets points for every keyword it contains; rarer keywords are worth more (TF-IDF style).</p>' +
         r.results.map((x, i) =>
@@ -494,7 +615,7 @@
     if (r.fragmentation && r.results.length) {
       const f = r.fragmentation;
       frag = f.intactInRetrieved
-        ? '<div class="fb fb--good frag"><div><b>Good chunking for this question:</b> the best-matching sentence in the handbook — “' + esc(f.sentence) + '” — sits whole inside a retrieved chunk.</div></div>'
+        ? '<div class="fb fb--good frag"><div><b>Good chunking for this question:</b> the best-matching sentence in ' + docName + ' — “' + esc(f.sentence) + '” — sits whole inside a retrieved chunk.</div></div>'
         : !f.intactInAnyChunk
           ? '<div class="fb fb--warn frag"><div><b>Chunking fragmented the answer.</b> The best-matching sentence — “' + esc(f.sentence) + '” — is split across chunks ' + f.spansChunks.map((n) => '#' + (n + 1)).join(', ') + '. No chunk contains it whole, so the retriever can only return pieces. Try <b>Sentence · 40 / 0</b> or add overlap.</div></div>'
           : '<div class="fb fb--warn frag"><div>The best-matching sentence exists whole in some chunk, but that chunk was not in the top results. Retrieval quality depends on both chunking and scoring.</div></div>';
@@ -614,9 +735,9 @@
   // =================================================================
   function initApplications() {
     const steps = [
-      ['User uploads document', 'concept', 'You paste text instead'],
-      ['Text extraction', 'concept', 'PDF/HTML → plain text'],
-      ['Document preprocessing', 'live', 'Whitespace normalised'],
+      ['User uploads document', 'live', 'Upload, drop or paste'],
+      ['Text extraction', 'live', 'PDF, DOCX, HTML → text'],
+      ['Document preprocessing', 'live', 'Page numbers, hyphens, spacing'],
       ['Chunking', 'live', 'Fixed & sentence-based'],
       ['Embedding generation', 'concept', 'Text → vectors'],
       ['Vector database storage', 'concept', 'Indexed for search'],

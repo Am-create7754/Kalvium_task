@@ -174,4 +174,50 @@ test('challenge test answers exist verbatim in the challenge document', () => {
   C.CHALLENGE_TESTS.forEach((t) => assert.ok(C.CHALLENGE_DOC.includes(t.answer), t.answer));
 });
 
+console.log('\nDocument preprocessing (own documents)');
+const D = require('../js/docloader.js');
+
+test('cleanText repairs PDF-style artifacts and reports them', () => {
+  const raw = 'Attendance Policy\r\nStudents must keep infor-\nmation up to date and\nattend classes.\n\n12\n\nPage 3 of 20\n\nLibrary   opens at 8.­';
+  const { text, report } = D.cleanText(raw);
+  assert.ok(text.includes('information up to date'), text);
+  assert.ok(!/Page 3|\n12\n/.test(text), text);
+  assert.ok(text.includes('Library opens at 8.'));
+  assert.strictEqual(report.hyphenBreaks, 1);
+  assert.strictEqual(report.pageNumbers, 2);
+  assert.strictEqual(report.invisibleChars, 1);
+  assert.ok(report.lineBreaksJoined >= 2);
+  assert.strictEqual(text.split('\n\n').length, 2);          // paragraphs kept
+});
+
+test('cleanText: empty and whitespace-only input', () => {
+  assert.strictEqual(D.cleanText('').text, '');
+  assert.strictEqual(D.cleanText('  \n\n \t ').text, '');
+  assert.strictEqual(D.cleanText(null).text, '');
+});
+
+test('cleanText truncates huge documents safely', () => {
+  const big = Array.from({ length: D.MAX_WORDS + 500 }, (_, i) => 'w' + i).join(' ');
+  const { text, report } = D.cleanText(big);
+  assert.strictEqual(report.truncated, true);
+  assert.strictEqual(text.split(/\s+/).length, D.MAX_WORDS);
+});
+
+test('retrieval works on an arbitrary user document', () => {
+  const doc = D.cleanText('Our refund policy allows returns within 30 days.\nItems must be unused.\n\nShipping is free on orders above $50. Express delivery costs $10.').text;
+  const r = R.retrieve(doc, 'How many days do I have for a refund?', { strategy: 'sentence', size: 30, overlap: 0 }, 3);
+  assert.ok(r.results[0].chunk.text.includes('30 days'));
+  const s = R.retrieve(doc, 'Is shipping free?', { strategy: 'sentence', size: 30, overlap: 0 }, 3);
+  assert.ok(s.results[0].chunk.text.includes('free on orders'));
+});
+
+test('headings without a full stop do not merge into the next sentence', () => {
+  const doc = 'Member Guide\n\nOpening Hours. The space opens at 7 AM on weekdays.';
+  const r = E.chunkText(doc, { strategy: 'sentence', size: 4, overlap: 0 });
+  assert.strictEqual(r.chunks[0].text, 'Member Guide');
+  assert.strictEqual(r.chunks[0].endsMidSentence, false);
+  const q = R.retrieve(doc, 'When does it open on weekdays?', { strategy: 'sentence', size: 40, overlap: 0 }, 3);
+  assert.ok(q.answer.some((a) => a.text === 'The space opens at 7 AM on weekdays.' && a.complete));
+});
+
 console.log('\n' + passed + ' tests passed' + (process.exitCode ? ' — SOME FAILED' : '') + '\n');

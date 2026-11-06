@@ -140,7 +140,9 @@
     // chunking cut a sentence in half, the student sees the broken fragment.
     const candidates = [];
     results.forEach((r) => {
-      const local = Engine.toSentences(r.chunk.words);
+      // paragraph breaks inside this chunk, as chunk-local indices
+      const localParas = new Set(Array.from(out.paraStarts).filter((p) => p > r.chunk.start && p < r.chunk.end).map((p) => p - r.chunk.start));
+      const local = Engine.toSentences(r.chunk.words, localParas);
       local.forEach((s) => {
         const ws = r.chunk.words.slice(s.start, s.end);
         const sc = scoreSpan(ws, terms.all);
@@ -150,8 +152,8 @@
             score: sc,
             chunkIndex: r.chunk.index,
             globalStart: r.chunk.start + s.start,
-            complete: Engine.endsSentence(ws[ws.length - 1]) &&
-                      (r.chunk.start + s.start === 0 || Engine.endsSentence(out.words[r.chunk.start + s.start - 1]))
+            complete: (Engine.endsSentence(ws[ws.length - 1]) || out.paraStarts.has(r.chunk.start + s.end)) &&
+                      (r.chunk.start + s.start === 0 || out.paraStarts.has(r.chunk.start + s.start) || Engine.endsSentence(out.words[r.chunk.start + s.start - 1]))
           });
         }
       });
@@ -172,7 +174,7 @@
 
     // FRAGMENTATION CHECK: find the best-matching sentence in the WHOLE document
     // and check whether any single retrieved chunk contains all of it.
-    const docSentences = Engine.toSentences(out.words);
+    const docSentences = Engine.toSentences(out.words, out.paraStarts);
     let best = null;
     docSentences.forEach((s) => {
       const sc = scoreSpan(out.words.slice(s.start, s.end), terms.all);

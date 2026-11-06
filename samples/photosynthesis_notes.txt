@@ -1,0 +1,13 @@
+Photosynthesis - Study Notes
+
+Photosynthesis is the process plants use to turn light energy into chemical
+energy. It takes place mainly in the chloroplasts of leaf cells, which contain
+a green pigment called chlorophyll.
+
+The process needs three inputs: carbon dioxide from the air, water from the
+soil, and energy from sunlight. It produces glucose, which the plant uses for
+energy and growth, and releases oxygen as a by-product.
+
+Photosynthesis has two stages. The light-dependent reactions happen in the
+thylakoid membranes and produce ATP and NADPH. The Calvin cycle happens in the
+stroma and uses that ATP and NADPH to build glucose from carbon dioxide.

@@ -1,6 +1,6 @@
 # ChunkLab — Testing checklist
 
-Automated: `node tests/engine.test.js` → **23 tests passed**.
+Automated: `node tests/engine.test.js` → **28 tests passed**.
 Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 
 | # | Check | How to verify | Result |
@@ -25,6 +25,20 @@ Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 | 18 | Responsive layout | Desktop, tablet (≤960px), phone (≤640px); no horizontal page scroll | ✅ |
 | 19 | No console errors | Browser console checked after a full run-through | ✅ |
 | 20 | No API keys / backend | Works from `file://` and any static server | ✅ |
+
+### Bring-your-own-document checks
+| # | Check | How to verify | Result |
+|---|---|---|---|
+| 21 | TXT upload | `samples/photosynthesis_notes.txt`: 105 words, wrapped lines joined | ✅ |
+| 22 | HTML upload | `samples/return_policy.html`: script, nav and footer removed; headings kept as sentences | ✅ |
+| 23 | DOCX upload | `samples/sunrise_cafe_faq.docx`: 134 words, chunked in the Lab | ✅ |
+| 24 | PDF upload | `samples/greenleaf_member_guide.pdf`: 2 pages, 2 page numbers removed, 1 hyphen repaired, 6 paragraphs rebuilt | ✅ |
+| 25 | Drag & drop | Dropping a file on the Lab editor or the RAG "Choose a document" card loads it | ✅ |
+| 26 | RAG on own document | Guests / printing / deposit / weekend-hours questions retrieve the right sentences; "Poor 8/0" fragments them | ✅ |
+| 27 | Suggested topics | Chips are generated from the document's most frequent keywords | ✅ |
+| 28 | Error handling | `.xyz` → "Unsupported file type"; asking with no document → prompt to load one; empty paste → warning | ✅ |
+| 29 | Use Lab text / back to sample | Lab text loads into RAG; switching back restores the 5 sample questions | ✅ |
+| 30 | Large documents | 50,000-word cap with notice; Lab shows the first 200 chunk cards and the first 4,000 map words; stats include everything | ✅ |
 
 ### Content integrity
 - Every illustrative answer in the RAG simulation is copied word-for-word from `HANDBOOK` in `js/content.js`.

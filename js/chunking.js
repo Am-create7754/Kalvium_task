@@ -39,12 +39,15 @@
    * Group word indices into sentences.
    * Returns [{start, end}] ranges over the word list.
    * A trailing fragment without final punctuation still counts as a sentence.
+   * If paragraph starts are given, a paragraph break also ends a sentence
+   * (so a heading like "Member Guide" never merges into the next line).
    */
-  function toSentences(words) {
+  function toSentences(words, paraStarts) {
     const sentences = [];
+    const breaks = paraStarts || new Set();
     let start = 0;
     for (let i = 0; i < words.length; i++) {
-      if (endsSentence(words[i])) {
+      if (endsSentence(words[i]) || breaks.has(i + 1)) {
         sentences.push({ start: start, end: i + 1 });
         start = i + 1;
       }
@@ -110,8 +113,8 @@
    */
   function sentenceRanges(words, size, overlap, paraStarts) {
     const { size: C, overlap: O } = sanitize(size, overlap);
-    const sentences = toSentences(words);
     const newPara = paraStarts || new Set();
+    const sentences = toSentences(words, newPara);
     const ranges = [];
     const len = (s) => s.end - s.start;
 
@@ -179,11 +182,12 @@
     const strategy = o.strategy === 'sentence' ? 'sentence' : 'fixed';
     const settings = Object.assign({ strategy: strategy }, sanitize(o.size, o.overlap));
     const words = toWords(text);
+    const paras = paragraphStarts(text);
 
     const ranges = words.length === 0
       ? []
       : strategy === 'sentence'
-        ? sentenceRanges(words, settings.size, settings.overlap, paragraphStarts(text))
+        ? sentenceRanges(words, settings.size, settings.overlap, paras)
         : fixedRanges(words.length, settings.size, settings.overlap);
 
     const chunks = ranges.map((r, i) => {
@@ -198,11 +202,12 @@
         text: w.join(' '),
         wordCount: w.length,
         overlapPrev: overlapPrev,                 // first N words repeat the previous chunk
-        endsMidSentence: !endsSentence(w[w.length - 1]) && r.end < words.length
+        // a cut is mid-sentence unless it lands on punctuation or a paragraph break
+        endsMidSentence: !endsSentence(w[w.length - 1]) && r.end < words.length && !paras.has(r.end)
       };
     });
 
-    return { words: words, chunks: chunks, settings: settings, stats: computeStats(words, chunks, settings) };
+    return { words: words, chunks: chunks, paraStarts: paras, settings: settings, stats: computeStats(words, chunks, settings) };
   }
 
   /** Statistics computed from the ACTUAL generated chunks. */

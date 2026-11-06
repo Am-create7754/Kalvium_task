@@ -6,6 +6,7 @@ Built for the **Instructional Designer Intern (AI Courses) — Kalvium** assessm
 Selected topic: **#5 · Text Chunking and Document Processing for RAG.**
 
 > Runs 100% in the browser. No backend, no API keys, no paid services, no build step.
+> **Bring your own document:** upload or drop a `.txt`, `.md`, `.pdf`, `.docx` or `.html` file (or paste text). ChunkLab extracts and cleans the text in the browser, then lets you chunk it and run the RAG simulation on it. Try the files in [`samples/`](samples/).
 
 ---
 
@@ -39,8 +40,8 @@ node tests/engine.test.js
 | 1 | The problem & RAG | 4 min | Compares "send the whole handbook" vs "retrieve relevant parts"; explores a clickable 7-stage RAG pipeline |
 | 2 | What is text chunking? | 6 min | Learns 4 key terms, chunks a paragraph live, compares fixed vs sentence-based output |
 | 3 | Chunk size & overlap ★ | 8 min | Turns a size dial, toggles overlap on a boundary problem, measures characters / words / tokens |
-| 4 | The Chunking Lab ★ | 8 min | Edits any text, tunes strategy / size / overlap, reads live stats + feedback, compares two configurations |
-| 5 | RAG retrieval simulation | 6 min | Asks the campus assistant questions and watches chunking → keywords → scoring → retrieval → answer |
+| 4 | The Chunking Lab ★ | 8 min | Edits, pastes or **uploads their own document**, tunes strategy / size / overlap, reads live stats + feedback, compares two configurations |
+| 5 | RAG retrieval simulation | 6 min | Asks questions about the sample handbook **or their own document** and watches chunking → keywords → scoring → retrieval → answer |
 | 6 | Engineer challenge | 4 min | Chooses settings for a policy document, runs 3 retrieval tests, justifies the choice, gets feedback |
 | 7 | Knowledge check | 5 min | 6 application-level MCQs with instant feedback, explanations, score, retake |
 | 8 | Real-world apps & wrap-up | 2 min | 5 real use cases, end-to-end architecture, real code, takeaways, completion summary |
@@ -76,6 +77,14 @@ By the end, learners can:
 - Every chunk is a word range `[start, end)`, so overlap with the previous chunk is exact: `prev.end − start`.
 - Stats are computed from the actual output: total words, chunk count, average / min / max size, redundant words, redundancy %, and chunks cut mid-sentence.
 
+### Bring your own document (`js/docloader.js`)
+- **Text extraction in the browser.** TXT/MD/CSV/JSON are read directly. HTML has scripts, styles, nav and footer removed, and block elements become paragraphs. PDF is extracted with pdf.js, and paragraphs are rebuilt from the vertical gaps between lines. DOCX is extracted with mammoth.js. The PDF and DOCX libraries are loaded from cdnjs only when needed, so the rest of the site works offline.
+- **Preprocessing with a visible report:** removes page-number lines, repairs hyphenated line breaks, joins wrapped lines, strips invisible characters, collapses whitespace, and keeps paragraphs. The learner sees exactly what was cleaned.
+- **Guards:** 10 MB file limit, 50,000-word cap (with a notice), and friendly errors for unsupported types, legacy `.doc`, empty files and scanned PDFs (which would need OCR).
+- **Privacy:** files are read with the browser's File API and never leave the device.
+- In the RAG simulation, suggested questions for an uploaded document come from its most frequent keywords, not from a fixed list.
+- Large documents render a capped number of chunk cards (all chunks are still counted and searched).
+
 ### Retrieval simulator (`js/retrieval.js`) — clearly labelled as a simulation
 - Removes stopwords and applies light stemming. A small synonym list is shown on screen, which demonstrates why keyword search needs help and embeddings don't.
 - TF-IDF-style scoring: `Σ (1 + ln tf) × idf` over the query terms.
@@ -93,8 +102,9 @@ By the end, learners can:
 
 | Pipeline stage | In ChunkLab |
 |---|---|
-| Document upload / text extraction | Conceptual (learners paste plain text) |
-| Preprocessing | **Working** (whitespace normalisation) |
+| Document upload | **Working** (upload, drag & drop, or paste) |
+| Text extraction | **Working** for TXT, MD, HTML, PDF (text-based) and DOCX. Scanned PDFs (OCR) are not supported |
+| Preprocessing | **Working** (page numbers, hyphenation, wrapped lines, whitespace) |
 | Chunking (fixed + sentence-based) | **Working**, unit-tested |
 | Embedding generation / vector DB | Conceptual only |
 | Retrieval | **Simulated** with keyword TF-IDF scoring |
@@ -119,11 +129,13 @@ chunklab/
 │   ├── content.js          # Sample texts: lab sample, handbook, challenge doc + tests
 │   ├── chunking.js         # Chunking engine (pure functions, Node + browser)
 │   ├── retrieval.js        # Keyword retrieval simulator (pure functions)
+│   ├── docloader.js        # Own-document upload: extraction + preprocessing
 │   ├── progress.js         # Navigation, lesson map, timeline, progress storage
 │   ├── quiz.js             # Knowledge check
 │   └── app.js              # UI wiring for all interactive modules
+├── samples/                # Documents to try uploading (PDF, DOCX, TXT, HTML)
 ├── tests/
-│   └── engine.test.js      # 23 unit tests for chunking + retrieval
+│   └── engine.test.js      # 28 unit tests: chunking, retrieval, preprocessing
 ├── docs/
 │   ├── TESTING.md          # Manual QA checklist
 │   └── VIDEO_OUTLINE.md    # 5–7 minute explanation-video script
@@ -133,8 +145,8 @@ chunklab/
 ---
 
 ## Testing
-- **Automated:** `node tests/engine.test.js` runs 23 tests covering empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries, retrieval relevance for every sample question, and fragmentation detection.
+- **Automated:** `node tests/engine.test.js` runs 28 tests covering empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries and headings, retrieval relevance for every sample question, fragmentation detection, document cleanup (page numbers, hyphenation, wrapped lines, truncation), and retrieval on arbitrary user documents.
 - **Manual:** see [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Credits
-Content, code and design are original work for this assessment. The sample university and its policies are fictional. Fonts are from Google Fonts. The LangChain snippet uses the public `langchain-text-splitters` API for illustration.
+Content, code and design are original work for this assessment. The sample university and its policies are fictional. Fonts are from Google Fonts. The LangChain snippet uses the public `langchain-text-splitters` API for illustration. PDF extraction uses [pdf.js](https://mozilla.github.io/pdf.js/) and DOCX extraction uses [mammoth.js](https://github.com/mwilliamson/mammoth.js), both loaded from cdnjs. The documents in `samples/` are fictional.

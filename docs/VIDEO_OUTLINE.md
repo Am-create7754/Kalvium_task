@@ -34,6 +34,7 @@ Record with the site open in a browser. Show while you speak, and keep each part
 *Show: RAG simulation.*
 - Ask "What is the minimum attendance required?" with **Sentence · 40/0**. Walk through the 4 steps and the extractive answer.
 - Switch to **Poor: fixed · 8/0** and ask again. The answer becomes fragments and the warning shows the sentence split across chunks.
+- **Bring your own document:** switch to "My own document" and drop `samples/greenleaf_member_guide.pdf`. Point at the extraction report (page numbers removed, hyphenation repaired) — the "text extraction + preprocessing" stage made visible. Ask "How many guests can I bring?"
 - Point at the honesty banner: keyword scoring, no embeddings or LLM. Then the "In production RAG" card: embeddings, vector DB, LLM.
 
 ### 5:10 – 5:50 · How a student uses it end-to-end
