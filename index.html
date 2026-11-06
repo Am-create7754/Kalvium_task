@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChunkLab — Learn Text Chunking for RAG</title>
+  <meta name="description" content="ChunkLab is a 45-minute interactive lesson that teaches beginners how text chunking and document processing power Retrieval-Augmented Generation (RAG)." />
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to lesson</a>
+
+  <!-- ============ STICKY TOP NAV ============ -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+      <a href="#home" class="brand" aria-label="ChunkLab home">
+        <span class="brand__mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand__name">Chunk<b>Lab</b></span>
+      </a>
+
+      <nav class="topnav" aria-label="Lesson sections">
+        <ol class="topnav__list" id="topnavList"><!-- filled by progress.js --></ol>
+      </nav>
+
+      <div class="topbar__actions">
+        <div class="progress-pill" aria-live="polite">
+          <span class="progress-pill__ring" id="progressRing" style="--p:0"></span>
+          <span><b id="progressPct">0%</b> <span class="hide-sm">complete</span></span>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="mapToggle" aria-expanded="false" aria-controls="lessonMap">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Lesson map</span>
+        </button>
+      </div>
+    </div>
+    <div class="topbar__bar"><span id="progressBar"></span></div>
+  </header>
+
+  <!-- ============ LESSON MAP DRAWER ============ -->
+  <aside class="drawer" id="lessonMap" aria-label="Lesson map" hidden>
+    <div class="drawer__panel clay">
+      <div class="drawer__head">
+        <h2>Lesson map</h2>
+        <button class="icon-btn" id="mapClose" aria-label="Close lesson map">✕</button>
+      </div>
+      <p class="muted">45 minutes · self-paced. Jump anywhere — your progress is saved in this browser.</p>
+      <ol class="map-list" id="mapList"><!-- filled by progress.js --></ol>
+      <button class="btn btn--ghost btn--sm" id="resetProgress">Reset my progress</button>
+    </div>
+    <div class="drawer__scrim" id="mapScrim"></div>
+  </aside>
+
+  <main id="main">
+
+    <!-- ===================================================== HERO -->
+    <section class="hero" id="home" data-section="home">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow"><span class="dot"></span> Learn. Experiment. Build.</p>
+          <h1>Teach Your AI to <span class="u-teal">Read Smarter.</span></h1>
+          <p class="lead">Before an AI assistant can answer questions about a 200-page handbook, someone has to cut that handbook into the right-sized pieces. In this lesson you will learn how <b>text chunking</b> works, try it on real text, and see how it decides what a RAG chatbot can find.</p>
+
+          <div class="hero__meta">
+            <div class="meta-chip"><span class="meta-chip__k">Duration</span><span class="meta-chip__v">45 min</span></div>
+            <div class="meta-chip"><span class="meta-chip__k">Difficulty</span><span class="meta-chip__v">Beginner</span></div>
+            <div class="meta-chip"><span class="meta-chip__k">Format</span><span class="meta-chip__v">Self-paced</span></div>
+          </div>
+
+          <div class="hero__cta">
+            <a href="#objectives" class="btn btn--primary btn--lg" id="startBtn">Start learning <span aria-hidden="true">→</span></a>
+            <a href="#lab" class="btn btn--ghost btn--lg">Jump to the Lab</a>
+          </div>
+        </div>
+
+        <!-- Document → chunks visual (pure CSS) -->
+        <div class="hero__visual" aria-hidden="true">
+          <div class="doc-stack clay">
+            <div class="doc-stack__head"><span class="file-ic"></span>student_handbook.pdf <em>200 pages</em></div>
+            <div class="doc-lines">
+              <i style="--w:92%"></i><i style="--w:78%"></i><i style="--w:86%"></i><i style="--w:64%" class="hl"></i>
+              <i style="--w:90%"></i><i style="--w:72%"></i><i style="--w:82%"></i><i style="--w:58%"></i>
+            </div>
+          </div>
+          <div class="hero__arrow"><span>chunk</span></div>
+          <div class="chunk-fan">
+            <div class="mini-chunk clay"><b>#1</b><i style="--w:90%"></i><i style="--w:70%"></i></div>
+            <div class="mini-chunk clay"><b>#2</b><i style="--w:80%"></i><i style="--w:60%"></i></div>
+            <div class="mini-chunk clay is-hit"><b>#3</b><i style="--w:88%"></i><i style="--w:66%"></i><span class="hit-tag">match</span></div>
+            <div class="mini-chunk clay"><b>#4</b><i style="--w:76%"></i><i style="--w:52%"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time breakdown -->
+      <div class="container">
+        <div class="timeline clay" aria-label="Lesson time breakdown, 45 minutes total">
+          <div class="timeline__head">
+            <h2 class="h-sm">Your 45-minute journey</h2>
+            <span class="muted mono" id="timeTotal">Σ 45 min</span>
+          </div>
+          <ol class="timeline__bar" id="timelineBar"><!-- progress.js --></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== OBJECTIVES -->
+    <section class="section" id="objectives" data-section="objectives">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 0 · <span class="time-tag">2 min</span></p>
+          <h2>What you will be able to do</h2>
+          <p class="section__lead">By the end of this lesson you will be able to:</p>
+        </header>
+        <ol class="objectives">
+          <li class="obj-card clay"><span class="obj-card__n">01</span><p>Explain <b>why large documents must be processed</b> before they are used in RAG.</p></li>
+          <li class="obj-card clay"><span class="obj-card__n">02</span><p>Describe <b>text extraction</b> and basic <b>document preprocessing</b>.</p></li>
+          <li class="obj-card clay"><span class="obj-card__n">03</span><p>Explain what <b>text chunking</b> is and what it is for.</p></li>
+          <li class="obj-card clay"><span class="obj-card__n">04</span><p>Tell apart <b>fixed-size</b> and <b>sentence-based</b> chunking strategies.</p></li>
+          <li class="obj-card clay"><span class="obj-card__n">05</span><p>Reason about <b>chunk size</b> and <b>chunk overlap</b> and their trade-offs.</p></li>
+          <li class="obj-card clay"><span class="obj-card__n">06</span><p><b>Experiment</b> with chunking parameters and read the results.</p></li>
+          <li class="obj-card clay"><span class="obj-card__n">07</span><p>Explain how chunks are <b>retrieved</b> to answer questions in real AI apps.</p></li>
+        </ol>
+        <div class="howto clay clay--beige">
+          <h3 class="h-sm">How to use ChunkLab</h3>
+          <ul class="howto__list">
+            <li><span class="pill">Read</span> short explanations, one idea at a time.</li>
+            <li><span class="pill pill--coral">Try</span> every orange-outlined box — they are interactive.</li>
+            <li><span class="pill">Mark done</span> at the end of each module to track progress.</li>
+          </ul>
+        </div>
+        <div class="section__foot" data-foot="objectives"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== PROBLEM -->
+    <section class="section section--alt" id="problem" data-section="problem">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 1 · <span class="time-tag">4 min</span></p>
+          <h2>The problem: a 200-page handbook and one question</h2>
+        </header>
+
+        <div class="grid-2">
+          <div class="scenario clay">
+            <p class="label">Scenario</p>
+            <p>Your university has a <b>200-page student handbook</b>. A student opens the campus AI assistant and types:</p>
+            <div class="chat">
+              <div class="chat__msg chat__msg--user">What is the attendance requirement for examinations?</div>
+              <div class="chat__msg chat__msg--bot"><span class="typing"><i></i><i></i><i></i></span></div>
+            </div>
+            <p class="muted small">The answer is one sentence somewhere around page 37. How does the AI find it?</p>
+          </div>
+
+          <div class="clay try-box" id="problemSim">
+            <p class="label label--coral">Try it · Two ways to answer</p>
+            <div class="seg" role="radiogroup" aria-label="Answering approach">
+              <button role="radio" aria-checked="true" class="seg__btn is-on" data-mode="all">Send the whole handbook</button>
+              <button role="radio" aria-checked="false" class="seg__btn" data-mode="rag">Retrieve relevant parts</button>
+            </div>
+            <div class="meter">
+              <div class="meter__row"><span>Text sent to the AI model</span><b id="pmWords">≈ 80,000 words</b></div>
+              <div class="meter__track"><span id="pmBar" style="width:100%"></span></div>
+              <div class="meter__row small muted"><span>≈ tokens (rule of thumb: 1 token ≈ ¾ word)</span><span id="pmTokens">≈ 107,000</span></div>
+            </div>
+            <ul class="pm-list" id="pmList">
+              <li class="bad">May not even fit in the model's <b>context window</b> (the maximum text it can read at once).</li>
+              <li class="bad">Slower and more expensive — you pay for every token, every question.</li>
+              <li class="bad">The one useful sentence is buried in thousands of irrelevant ones.</li>
+            </ul>
+            <p class="tiny muted">Estimate assumes ~400 words per page. Real counts vary by document.</p>
+          </div>
+        </div>
+
+        <div class="concept clay">
+          <div class="concept__icon" aria-hidden="true">📖</div>
+          <div>
+            <h3>Meet RAG: an open-book exam for AI</h3>
+            <p><b>Retrieval-Augmented Generation (RAG)</b> is a way of building AI apps where the system first <b>retrieves</b> the most relevant pieces of your documents, then gives only those pieces to the language model so it can <b>generate</b> an answer grounded in them.</p>
+            <p>Think of an open-book exam: you don't re-read the whole textbook for each question — you flip to the right page. RAG needs the "pages" to exist first. <b>Document processing and chunking create those pages.</b></p>
+          </div>
+        </div>
+
+        <h3 class="h-md">The RAG pipeline <span class="muted small">— click a stage</span></h3>
+        <div class="pipeline" id="pipeline" role="tablist" aria-label="RAG pipeline stages"><!-- app.js --></div>
+        <div class="pipeline-detail clay" id="pipelineDetail" role="tabpanel" aria-live="polite"></div>
+
+        <div class="section__foot" data-foot="problem"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== WHAT IS CHUNKING -->
+    <section class="section" id="chunking" data-section="chunking">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 2 · <span class="time-tag">6 min</span></p>
+          <h2>What is text chunking?</h2>
+          <p class="section__lead">Four words you need, explained in one line each.</p>
+        </header>
+
+        <div class="terms">
+          <div class="term clay"><span class="term__k">Document</span><p>Any source of knowledge: a PDF, web page, Word file, or slide deck.</p></div>
+          <div class="term clay"><span class="term__k">Text extraction</span><p>Pulling plain text out of that file, then cleaning it (removing headers, page numbers, extra spaces).</p></div>
+          <div class="term clay"><span class="term__k">Chunk</span><p>One small, self-contained piece of the text — a few sentences or a paragraph.</p></div>
+          <div class="term clay term--coral"><span class="term__k">Chunking</span><p>The process of dividing the clean text into chunks so each one can be stored and searched on its own.</p></div>
+        </div>
+
+        <blockquote class="analogy clay clay--beige">
+          <span class="analogy__q" aria-hidden="true">“</span>
+          <p>A large textbook is like a complete document. Instead of searching through every page every time, we divide it into smaller meaningful sections so the relevant information can be found more easily.</p>
+        </blockquote>
+
+        <div class="clay try-box" id="transformDemo">
+          <div class="try-box__head">
+            <p class="label label--coral">Try it · Watch a document become chunks</p>
+            <button class="btn btn--primary btn--sm" id="transformBtn" aria-pressed="false">Chunk it ✂</button>
+          </div>
+          <div class="transform" id="transformStage">
+            <div class="transform__doc" id="transformDoc"></div>
+            <div class="transform__chunks" id="transformChunks" hidden></div>
+          </div>
+          <p class="small muted" id="transformNote">This is one paragraph from our sample handbook (Attendance Policy).</p>
+        </div>
+
+        <h3 class="h-md">Why does context matter?</h3>
+        <div class="grid-2">
+          <div class="ctx-card clay">
+            <p class="label">Chunk without context</p>
+            <p class="quote">“…and a late fee of Rs 500.”</p>
+            <p class="small muted">A fee for what? Library? Exams? The chunk is too small to be useful on its own.</p>
+          </div>
+          <div class="ctx-card clay ctx-card--good">
+            <p class="label">Chunk with context</p>
+            <p class="quote">“Late registration is allowed only with the approval of the faculty advisor and a late fee of Rs 500.”</p>
+            <p class="small muted">Self-contained. Whoever retrieves this chunk understands it.</p>
+          </div>
+        </div>
+
+        <h3 class="h-md">Benefits of good chunking</h3>
+        <ul class="benefits">
+          <li class="benefit clay"><b>Easier retrieval</b><span>Small pieces can be matched precisely to a question.</span></li>
+          <li class="benefit clay"><b>More focused context</b><span>The model sees what matters, not 200 pages.</span></li>
+          <li class="benefit clay"><b>Better document management</b><span>Update or delete one section without reprocessing everything.</span></li>
+          <li class="benefit clay"><b>Less unnecessary context</b><span>Fewer tokens → faster, cheaper answers.</span></li>
+          <li class="benefit clay"><b>Controlled LLM input</b><span>You decide exactly what the model is allowed to read.</span></li>
+        </ul>
+
+        <div class="callout callout--teal">
+          <b>Key idea:</b> retrieval can only return chunks that exist. If chunking cuts an answer in half, the best search engine in the world can only find half an answer. <em>Chunking quality limits retrieval quality.</em>
+        </div>
+
+        <h3 class="h-md">Two broad approaches</h3>
+        <div class="grid-2" id="approachCompare">
+          <div class="approach clay">
+            <div class="approach__head"><h4>Fixed-size chunking</h4><span class="pill">every 20 words</span></div>
+            <p class="small">Cut every <i>N</i> words (or characters, or tokens), no matter where sentences end. Simple and predictable.</p>
+            <div class="approach__out" id="approachFixed"></div>
+            <p class="approach__stat" id="approachFixedStat"></p>
+          </div>
+          <div class="approach clay">
+            <div class="approach__head"><h4>Sentence / structure-aware</h4><span class="pill">≤ 20 words, whole sentences</span></div>
+            <p class="small">Respect natural boundaries — sentences, paragraphs, headings — and pack them up to a limit.</p>
+            <div class="approach__out" id="approachSentence"></div>
+            <p class="approach__stat" id="approachSentenceStat"></p>
+          </div>
+        </div>
+        <p class="small muted">Both columns are generated live by ChunkLab's real chunking engine from the same text.</p>
+
+        <div class="section__foot" data-foot="chunking"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== SIZE & OVERLAP -->
+    <section class="section section--alt" id="size-overlap" data-section="size-overlap">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 3 · <span class="time-tag">8 min</span> · <span class="star">Core concept</span></p>
+          <h2>Chunk size and overlap</h2>
+          <p class="section__lead">Two dials control almost every chunker. Learn what each one does.</p>
+        </header>
+
+        <h3 class="h-md">Dial 1 — Chunk size</h3>
+        <p>Chunk size decides <b>how much text goes into each chunk</b>.</p>
+        <div class="grid-2">
+          <div class="vs clay">
+            <h4>Small chunks</h4>
+            <ul class="pc"><li class="pro">More focused information</li><li class="pro">Precise matches</li><li class="con">More segments to store and search</li><li class="con">May lose surrounding context</li></ul>
+          </div>
+          <div class="vs clay">
+            <h4>Large chunks</h4>
+            <ul class="pc"><li class="pro">More surrounding context</li><li class="pro">Fewer segments</li><li class="con">May include irrelevant information</li><li class="con">Uses more of the model's context window</li></ul>
+          </div>
+        </div>
+
+        <div class="clay try-box" id="sizeDemo">
+          <p class="label label--coral">Try it · Turn the size dial</p>
+          <div class="ctrl">
+            <label for="sizeDemoRange">Chunk size: <b class="mono" id="sizeDemoVal">12</b> words</label>
+            <input type="range" id="sizeDemoRange" min="4" max="60" value="12" />
+          </div>
+          <div class="size-demo__out" id="sizeDemoOut"></div>
+          <p class="feedback" id="sizeDemoMsg" aria-live="polite"></p>
+        </div>
+
+        <h3 class="h-md">Dial 2 — Chunk overlap</h3>
+        <p><b>Overlap</b> means repeating a few words from the end of one chunk at the start of the next one — like a bridge between neighbours.</p>
+        <div class="overlap-example">
+          <div class="ov-chunk clay"><span class="ov-chunk__n">Chunk 1</span>Retrieval-Augmented Generation retrieves relevant information from <mark class="ov">external documents</mark>.</div>
+          <div class="ov-link" aria-hidden="true">⇢</div>
+          <div class="ov-chunk clay"><span class="ov-chunk__n">Chunk 2</span><mark class="ov">External documents</mark> provide context that helps the language model generate grounded responses.</div>
+        </div>
+        <p class="small muted">The repeated phrase (in coral) tells a reader of Chunk 2 what "external documents" refers to — continuity is preserved.</p>
+
+        <div class="clay try-box" id="boundaryDemo">
+          <div class="try-box__head">
+            <p class="label label--coral">Try it · The boundary problem</p>
+            <div class="seg seg--sm" role="radiogroup" aria-label="Overlap amount">
+              <button role="radio" aria-checked="true" class="seg__btn is-on" data-ov="0">Overlap 0</button>
+              <button role="radio" aria-checked="false" class="seg__btn" data-ov="5">Overlap 5</button>
+            </div>
+          </div>
+          <p class="small">Fixed chunks of 14 words over the attendance rules. Look where the cut lands:</p>
+          <div class="boundary-out" id="boundaryOut"></div>
+          <p class="feedback" id="boundaryMsg" aria-live="polite"></p>
+        </div>
+
+        <h3 class="h-md">The trade-offs</h3>
+        <div class="tradeoffs">
+          <div class="trade clay"><span class="trade__tag">Too little overlap</span><p>Ideas that cross a boundary get split, and each half can lose its meaning.</p></div>
+          <div class="trade clay"><span class="trade__tag trade__tag--coral">Too much overlap</span><p>Lots of repeated text → more storage, more embeddings to compute, and near-duplicate search results.</p></div>
+          <div class="trade clay"><span class="trade__tag trade__tag--teal">No universal answer</span><p>The right size and overlap depend on your documents, your questions, and your model's limits. Teams test and measure.</p></div>
+        </div>
+
+        <h3 class="h-md">What do we count in? Characters, words, tokens, sentences</h3>
+        <div class="units">
+          <div class="unit clay"><b>Character-based</b><p>Split every <i>N</i> characters. Easy, but can cut words in half.</p><code>"Attend|ance is…"</code></div>
+          <div class="unit clay"><b>Word-based</b><p>Split every <i>N</i> words. Easy for humans to read — what ChunkLab's simulator uses.</p><code>"Attendance is | recorded…"</code></div>
+          <div class="unit clay unit--key"><b>Token-based</b><p>Split every <i>N</i> <b>tokens</b> — the units a model actually reads. A token is often a word or part of a word.</p><code>"un" "believ" "able"</code></div>
+          <div class="unit clay"><b>Sentence-aware</b><p>Keep whole sentences together and pack them up to a size limit.</p><code>"…exam. | Hall tickets…"</code></div>
+        </div>
+
+        <div class="callout callout--coral">
+          <b>Important technical distinction:</b> LLM context windows and embedding-model input limits are measured in <b>tokens</b>, not words. In English, one token is roughly ¾ of a word on average, but it varies by tokenizer and language. Production chunkers usually measure size in tokens with the model's own tokenizer. ChunkLab's word-based simulator is a <b>simplified teaching tool</b>, not a production tokenizer.
+        </div>
+
+        <div class="clay try-box" id="unitMeter">
+          <p class="label label--coral">Try it · Measure your own text</p>
+          <label for="unitInput" class="sr-only">Text to measure</label>
+          <textarea id="unitInput" rows="3" class="input">Students must carry their hall ticket and university ID card to every examination.</textarea>
+          <div class="unit-stats">
+            <div><span class="mono big" id="umChars">0</span><span>characters</span></div>
+            <div><span class="mono big" id="umWords">0</span><span>words</span></div>
+            <div><span class="mono big" id="umTokens">0</span><span>tokens (estimate*)</span></div>
+            <div><span class="mono big" id="umSent">0</span><span>sentences</span></div>
+          </div>
+          <p class="tiny muted">*Estimated as characters ÷ 4, a common rule of thumb for English. A real tokenizer would give a slightly different number.</p>
+        </div>
+
+        <div class="section__foot" data-foot="size-overlap"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== LAB -->
+    <section class="section section--lab" id="lab" data-section="lab">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 4 · <span class="time-tag">8 min</span> · <span class="star">Hands-on</span></p>
+          <h2>The Chunking Lab</h2>
+          <p class="section__lead">Edit the text, turn the dials, and watch the chunks change. Every number here comes from the real output.</p>
+        </header>
+
+        <div class="lab">
+          <!-- Editor -->
+          <div class="lab__editor clay">
+            <div class="panel-head">
+              <h3 class="h-sm"><label for="labInput">1 · Your document</label></h3>
+              <div class="btn-row">
+                <button class="btn btn--ghost btn--xs" id="labRestore">Restore sample</button>
+                <button class="btn btn--ghost btn--xs" id="labClear">Clear</button>
+              </div>
+            </div>
+            <textarea id="labInput" class="input input--doc" rows="10" spellcheck="false"></textarea>
+            <p class="counts mono small"><span id="labWordCount">0</span> words · <span id="labCharCount">0</span> characters · ≈ <span id="labTokCount">0</span> tokens</p>
+          </div>
+
+          <!-- Controls -->
+          <div class="lab__controls clay">
+            <h3 class="h-sm">2 · Chunking settings</h3>
+            <div class="ctrl">
+              <span class="ctrl__label" id="stratLabel">Strategy</span>
+              <div class="seg seg--full" role="radiogroup" aria-labelledby="stratLabel" id="labStrategy">
+                <button role="radio" aria-checked="true" class="seg__btn is-on" data-strategy="fixed">Fixed-size (words)</button>
+                <button role="radio" aria-checked="false" class="seg__btn" data-strategy="sentence">Sentence-based</button>
+              </div>
+            </div>
+            <div class="ctrl">
+              <label for="labSize">Chunk size <b class="mono" id="labSizeVal">20</b> words</label>
+              <input type="range" id="labSize" min="3" max="80" value="20" />
+            </div>
+            <div class="ctrl">
+              <label for="labOverlap">Overlap <b class="mono" id="labOverlapVal">4</b> words</label>
+              <input type="range" id="labOverlap" min="0" max="19" value="4" />
+              <p class="tiny muted" id="labOverlapHint">Max overlap = chunk size − 1, so every chunk moves forward.</p>
+            </div>
+            <p class="formula mono small" id="labFormula">step S = C − O = 20 − 4 = 16 words</p>
+            <button class="btn btn--primary btn--block" id="labGenerate">Generate chunks</button>
+          </div>
+        </div>
+
+        <!-- Output -->
+        <div class="lab__output clay" id="labOutput">
+          <div class="panel-head">
+            <h3 class="h-sm">3 · Results</h3>
+            <div class="seg seg--sm" role="tablist" aria-label="Result view">
+              <button role="tab" aria-selected="true" class="seg__btn is-on" data-view="cards" id="tabCards">Chunk cards</button>
+              <button role="tab" aria-selected="false" class="seg__btn" data-view="map" id="tabMap">Original text map</button>
+            </div>
+          </div>
+
+          <div class="stats" id="labStats"></div>
+          <div class="legend small"><span><i class="sw sw--teal"></i>chunk content</span><span><i class="sw sw--coral"></i>overlap (repeated from previous chunk)</span><span><i class="sw sw--cut"></i>cut mid-sentence</span></div>
+
+          <div class="change-note" id="labChange" aria-live="polite"></div>
+          <div class="chunk-grid" id="labChunks"></div>
+          <div class="text-map" id="labMap" hidden></div>
+          <div class="feedback-box" id="labFeedback" aria-live="polite"></div>
+        </div>
+
+        <!-- Compare -->
+        <div class="compare clay" id="compare">
+          <div class="panel-head">
+            <h3 class="h-sm">4 · Experiment: compare two configurations</h3>
+            <div class="btn-row" id="comparePresets">
+              <button class="chip" data-preset="overlap">No overlap vs overlap</button>
+              <button class="chip" data-preset="size">Small vs large</button>
+              <button class="chip" data-preset="strategy">Fixed vs sentence</button>
+            </div>
+          </div>
+          <p class="small muted">Both use the document in the editor above.</p>
+          <div class="compare__grid">
+            <div class="cmp" data-cmp="A"></div>
+            <div class="cmp" data-cmp="B"></div>
+          </div>
+          <div class="feedback-box" id="compareExplain" aria-live="polite"></div>
+        </div>
+
+        <div class="section__foot" data-foot="lab"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== RAG SIM -->
+    <section class="section section--alt" id="rag" data-section="rag">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 5 · <span class="time-tag">6 min</span></p>
+          <h2>From chunks to answers: a RAG simulation</h2>
+          <p class="section__lead">Ask the campus assistant a question and watch each stage of retrieval.</p>
+        </header>
+
+        <div class="honest">
+          <span class="honest__badge">Teaching simulation</span>
+          <p>This uses <b>simple keyword matching</b> so you can see why each chunk was picked. It does <b>not</b> use real embeddings, a vector database, or a language model. The "answer" is extracted word-for-word from the retrieved chunks.</p>
+        </div>
+
+        <div class="rag">
+          <div class="rag__left">
+            <div class="clay rag__settings">
+              <h3 class="h-sm">Chunk the handbook</h3>
+              <div class="btn-row">
+                <button class="chip is-on" data-rag-preset="good">Sentence · 40 / 0</button>
+                <button class="chip" data-rag-preset="poor">Poor: fixed · 8 / 0</button>
+                <button class="chip" data-rag-preset="overlap">Fixed · 25 / 8</button>
+              </div>
+              <div class="ctrl">
+                <span class="ctrl__label" id="ragStratLabel">Strategy</span>
+                <div class="seg seg--full seg--sm" role="radiogroup" aria-labelledby="ragStratLabel" id="ragStrategy">
+                  <button role="radio" aria-checked="false" class="seg__btn" data-strategy="fixed">Fixed-size</button>
+                  <button role="radio" aria-checked="true" class="seg__btn is-on" data-strategy="sentence">Sentence-based</button>
+                </div>
+              </div>
+              <div class="ctrl"><label for="ragSize">Chunk size <b class="mono" id="ragSizeVal">40</b></label><input type="range" id="ragSize" min="4" max="80" value="40" /></div>
+              <div class="ctrl"><label for="ragOverlap">Overlap <b class="mono" id="ragOverlapVal">0</b></label><input type="range" id="ragOverlap" min="0" max="39" value="0" /></div>
+              <p class="small mono" id="ragChunkInfo"></p>
+            </div>
+            <details class="clay doc-view">
+              <summary>View the sample handbook <span class="muted small">(fictional university)</span></summary>
+              <div class="doc-view__body" id="handbookView"></div>
+            </details>
+          </div>
+
+          <div class="rag__right">
+            <form class="ask clay" id="ragForm" autocomplete="off">
+              <label for="ragQuery" class="h-sm">Ask the assistant</label>
+              <div class="ask__row">
+                <input type="text" id="ragQuery" class="input" placeholder="e.g. What is the minimum attendance required?" />
+                <button class="btn btn--primary" type="submit">Ask</button>
+              </div>
+              <div class="chips" id="ragSamples"></div>
+            </form>
+            <div id="ragResult" class="rag-result" aria-live="polite">
+              <div class="empty clay clay--beige"><p>Pick a sample question or type your own to start the simulation.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2 prod-vs">
+          <div class="clay">
+            <p class="label">In this simulation</p>
+            <ul class="steps-mini">
+              <li>Query → keywords (stopwords removed, light stemming)</li>
+              <li>Chunks scored by matching keywords (TF-IDF style)</li>
+              <li>Answer = sentences copied from the top chunks</li>
+            </ul>
+          </div>
+          <div class="clay clay--teal">
+            <p class="label label--light">In production RAG</p>
+            <ul class="steps-mini">
+              <li>Query and chunks turned into <b>embeddings</b> (vectors of numbers capturing meaning)</li>
+              <li><b>Vector database</b> finds chunks with the highest semantic similarity — "timings" matches "open 8 AM" without a synonym list</li>
+              <li>An <b>LLM</b> writes a fluent answer grounded in the retrieved chunks, often with citations</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section__foot" data-foot="rag"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== CHALLENGE -->
+    <section class="section" id="challenge" data-section="challenge">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 6 · <span class="time-tag">4 min</span> · <span class="star">Challenge</span></p>
+          <h2>Become a Document Processing Engineer</h2>
+        </header>
+
+        <div class="mission clay clay--teal">
+          <p class="label label--light">Your mission</p>
+          <p>You are building a <b>university chatbot</b>. Your next document is a policy sheet with <b>short policy statements</b> grouped into <b>paragraphs of related rules</b>. Choose chunking settings that let the bot answer students reliably — then justify them.</p>
+          <p class="small">There is no single correct answer. You will be assessed on <b>how your settings behave</b> and <b>how well you explain your reasoning</b>.</p>
+        </div>
+
+        <div class="challenge">
+          <details class="clay doc-view" open>
+            <summary>The policy document</summary>
+            <div class="doc-view__body" id="challengeDocView"></div>
+          </details>
+
+          <div class="clay challenge__steps">
+            <ol class="ch-steps">
+              <li>
+                <span class="ch-steps__n">1</span>
+                <div class="ctrl">
+                  <span class="ctrl__label" id="chStratLabel">Select a chunking strategy</span>
+                  <div class="seg seg--full seg--sm" role="radiogroup" aria-labelledby="chStratLabel" id="chStrategy">
+                    <button role="radio" aria-checked="true" class="seg__btn is-on" data-strategy="fixed">Fixed-size</button>
+                    <button role="radio" aria-checked="false" class="seg__btn" data-strategy="sentence">Sentence-based</button>
+                  </div>
+                </div>
+              </li>
+              <li><span class="ch-steps__n">2</span><div class="ctrl"><label for="chSize">Configure chunk size <b class="mono" id="chSizeVal">10</b> words</label><input type="range" id="chSize" min="3" max="60" value="10" /></div></li>
+              <li><span class="ch-steps__n">3</span><div class="ctrl"><label for="chOverlap">Configure overlap <b class="mono" id="chOverlapVal">0</b> words</label><input type="range" id="chOverlap" min="0" max="9" value="0" /></div></li>
+              <li><span class="ch-steps__n">4</span><button class="btn btn--primary btn--block" id="chGenerate">Generate &amp; test chunks</button></li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="clay ch-output" id="chOutput" hidden>
+          <h3 class="h-sm">5 · Compare the output</h3>
+          <div class="stats" id="chStats"></div>
+          <div class="chunk-grid chunk-grid--compact" id="chChunks"></div>
+          <h4 class="h-xs">Retrieval test — 3 real student questions</h4>
+          <ul class="tests" id="chTests"></ul>
+        </div>
+
+        <div class="clay ch-reason" id="chReasonBox" hidden>
+          <h3 class="h-sm"><label for="chReason">6 · Explain why you chose these settings</label></h3>
+          <textarea id="chReason" class="input" rows="4" placeholder="e.g. I chose sentence-based chunking because each policy is one sentence, so…"></textarea>
+          <div class="btn-row"><button class="btn btn--coral" id="chSubmit">Check my answer</button><span class="tiny muted" id="chReasonCount">0 / 40 characters minimum</span></div>
+          <div class="feedback-box" id="chFeedback" aria-live="polite"></div>
+        </div>
+
+        <div class="section__foot" data-foot="challenge"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== QUIZ -->
+    <section class="section section--alt" id="quiz" data-section="quiz">
+      <div class="container container--narrow">
+        <header class="section__head">
+          <p class="section__kicker">Module 7 · <span class="time-tag">5 min</span></p>
+          <h2>Knowledge check</h2>
+          <p class="section__lead">Six questions about applying what you learned. One at a time, with an explanation after each.</p>
+        </header>
+        <div class="quiz clay" id="quizRoot"><!-- quiz.js --></div>
+        <div class="section__foot" data-foot="quiz"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================== APPLICATIONS & CONCLUSION -->
+    <section class="section" id="applications" data-section="applications">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__kicker">Module 8 · <span class="time-tag">2 min</span></p>
+          <h2>Chunking in the real world</h2>
+          <p class="section__lead">Every "chat with your documents" product has a chunker inside it.</p>
+        </header>
+
+        <div class="apps">
+          <article class="app clay"><span class="app__ic" aria-hidden="true">📄</span><h3>PDF Q&amp;A apps</h3><p>Upload a PDF and ask questions. Pages are extracted, chunked, embedded, and searched for every question.</p><p class="app__tip">Chunking tip: PDFs need cleaning — headers, footers, and broken lines confuse chunkers.</p></article>
+          <article class="app clay"><span class="app__ic" aria-hidden="true">🎓</span><h3>University assistants</h3><p>Answer questions about handbooks, timetables, and fee rules — exactly what you simulated today.</p><p class="app__tip">Chunking tip: keep each rule whole so numbers like "75%" stay next to what they apply to.</p></article>
+          <article class="app clay"><span class="app__ic" aria-hidden="true">🏢</span><h3>Enterprise document search</h3><p>Employees search thousands of internal docs, wikis, and reports in plain English.</p><p class="app__tip">Chunking tip: store metadata (document title, section, date) with each chunk.</p></article>
+          <article class="app clay"><span class="app__ic" aria-hidden="true">🎧</span><h3>Customer support bots</h3><p>Help-center articles become chunks so a bot can answer "How do I reset my password?"</p><p class="app__tip">Chunking tip: one FAQ question + its answer usually makes a natural chunk.</p></article>
+          <article class="app clay"><span class="app__ic" aria-hidden="true">⚖️</span><h3>Legal &amp; research assistants</h3><p>Long contracts and papers where one missing clause changes the meaning.</p><p class="app__tip">Chunking tip: structure-aware splitting by clause or section, often with overlap.</p></article>
+        </div>
+
+        <h3 class="h-md">The end-to-end architecture</h3>
+        <p class="small muted">What you used today versus what a production system adds.</p>
+        <ol class="arch" id="archFlow"><!-- app.js --></ol>
+        <div class="legend small"><span><i class="sw sw--teal"></i>Working in ChunkLab</span><span><i class="sw sw--coral"></i>Simplified simulation</span><span><i class="sw sw--beige"></i>Explained conceptually</span></div>
+
+        <div class="grid-2 code-row">
+          <div class="clay">
+            <p class="label">How a real project does it (Python, LangChain)</p>
+<pre class="code"><code><span class="c"># pip install langchain-text-splitters</span>
+<span class="k">from</span> langchain_text_splitters <span class="k">import</span> RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=<span class="n">500</span>,     <span class="c"># measured in characters by default</span>
+    chunk_overlap=<span class="n">50</span>,
+)
+chunks = splitter.split_text(handbook_text)
+<span class="k">print</span>(len(chunks), chunks[<span class="n">0</span>])</code></pre>
+            <p class="tiny muted">It tries paragraph breaks first, then lines, then spaces — a structure-aware strategy. Size can be measured in tokens by passing a tokenizer-based length function.</p>
+          </div>
+          <div class="clay">
+            <p class="label">The core of ChunkLab's fixed-size chunker (JavaScript)</p>
+<pre class="code"><code><span class="k">const</span> S = C - O;              <span class="c">// step: size minus overlap</span>
+<span class="k">for</span> (<span class="k">let</span> start = <span class="n">0</span>; start &lt; N; start += S) {
+  <span class="k">const</span> end = Math.min(start + C, N);
+  chunks.push(words.slice(start, end));
+  <span class="k">if</span> (end === N) <span class="k">break</span>;     <span class="c">// no empty or duplicate tail</span>
+}</code></pre>
+            <p class="tiny muted">Full, commented source: <span class="mono">js/chunking.js</span>. Overlap is clamped to C − 1 so S ≥ 1 and the loop always ends.</p>
+          </div>
+        </div>
+
+        <h3 class="h-md">Key takeaways</h3>
+        <ol class="takeaways">
+          <li class="clay"><b>RAG retrieves before it generates.</b> Models answer from the chunks you give them.</li>
+          <li class="clay"><b>Chunking creates the searchable units.</b> Bad chunks mean bad retrieval, however good the model.</li>
+          <li class="clay"><b>Size trades focus for context.</b> Overlap trades redundancy for continuity.</li>
+          <li class="clay"><b>Measure in tokens</b> in production — models count tokens, not words.</li>
+          <li class="clay"><b>There is no magic number.</b> Match the strategy to the document's structure, then test with real questions.</li>
+        </ol>
+
+        <!-- Completion -->
+        <div class="complete clay clay--teal" id="complete">
+          <div class="complete__badge" aria-hidden="true"><span class="brand__mark brand__mark--lg"><i></i><i></i><i></i></span></div>
+          <div class="complete__body">
+            <p class="label label--light">Lesson summary</p>
+            <h2 id="completeTitle">Keep going — you're on your way</h2>
+            <div class="complete__stats">
+              <div><span class="big mono" id="cmpModules">0/9</span><span>modules done</span></div>
+              <div><span class="big mono" id="cmpQuiz">–</span><span>quiz score</span></div>
+              <div><span class="big mono" id="cmpChallenge">–</span><span>challenge</span></div>
+            </div>
+            <p id="completeMsg">Finish the remaining modules to complete ChunkLab.</p>
+            <div class="btn-row">
+              <button class="btn btn--coral" id="finishBtn">Mark lesson complete</button>
+              <a href="#lab" class="btn btn--ghost-light">Back to the Lab</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="brand__name">Chunk<b>Lab</b></span>
+      <span class="small">Learn. Experiment. Build. · A self-paced lesson on text chunking for RAG.</span>
+      <span class="tiny muted">Runs fully in your browser · no API keys, no tracking · sample university is fictional.</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/content.js"></script>
+  <script src="js/chunking.js"></script>
+  <script src="js/retrieval.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

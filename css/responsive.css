@@ -1,0 +1,76 @@
+/* =====================================================================
+   ChunkLab — Responsive layouts
+   ===================================================================== */
+
+/* Large tablets / small laptops */
+@media (max-width: 1180px) {
+  .topnav { display: none; }                 /* lesson map drawer takes over */
+  .benefits { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .takeaways { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Tablets */
+@media (max-width: 960px) {
+  .section { padding: 72px 0 56px; }
+  .hero__grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero__visual { max-width: 560px; }
+  .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .units { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lab { grid-template-columns: 1fr; }
+  .rag { grid-template-columns: 1fr; }
+  .rag__left { position: static; }
+  .challenge { grid-template-columns: 1fr; }
+  .compare__grid { grid-template-columns: 1fr; }
+  .tradeoffs { grid-template-columns: 1fr; }
+  .tl-seg__t { display: none; }
+  .arch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Phones */
+@media (max-width: 640px) {
+  :root { --nav-h: 58px; }
+  body { font-size: 15.5px; }
+  .container, .container--narrow { width: calc(100% - 32px); }
+  .clay { padding: 18px; border-radius: 18px; }
+  .section { padding: 56px 0 44px; }
+  .hide-sm { display: none; }
+  #mapToggle span { display: none; }
+  .hero { padding-top: 40px; }
+  .hero__visual { grid-template-columns: 1fr auto 1fr; gap: 8px; }
+  .doc-stack { padding: 12px; }
+  .mini-chunk { padding: 9px 10px; }
+  .meta-chip { min-width: 0; flex: 1 1 30%; padding: .6rem .7rem; }
+  .hero__cta .btn { flex: 1 1 100%; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .terms, .units { grid-template-columns: 1fr; }
+  .benefits, .takeaways { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .unit-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cmp__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overlap-example { grid-template-columns: 1fr; }
+  .ov-link { transform: rotate(90deg); justify-self: center; }
+  .concept { flex-direction: column; }
+  .pipeline-detail { grid-template-columns: 1fr; }
+  .ask__row { flex-direction: column; }
+  .complete { grid-template-columns: 1fr; padding: 24px; gap: 18px; }
+  .foot { flex-direction: column; align-items: stretch; }
+  .foot .btn { width: 100%; }
+  .foot__mid { justify-content: center; }
+  .analogy { padding: 20px; }
+  .analogy p { font-size: 1.05rem; }
+  .quiz { padding: 20px; }
+  .quiz__q { font-size: 1.1rem; }
+  .honest { flex-direction: column; }
+  .timeline { padding: 16px; }
+  .timeline__bar { gap: 3px; }
+  .tl-seg__m { font-size: .66rem; }
+}
+
+/* Tighter nav on mid-size laptops so all 9 modules fit */
+@media (max-width: 1440px) and (min-width: 1181px) {
+  .topbar__inner { gap: 12px; }
+  .topnav__link { padding: .42rem .45rem; font-size: .78rem; gap: .3rem; }
+  .progress-pill .hide-sm { display: none; }
+  #mapToggle span { display: none; }
+}
