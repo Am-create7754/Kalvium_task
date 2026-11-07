@@ -190,3 +190,8 @@
   #mapToggle { padding: .5rem .55rem; }
 }
 @media (max-width: 360px) { .brand__name { display: none; } }
+
+.badge-shelf { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.complete .badge-shelf { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+@media (max-width: 960px) { .complete .badge-shelf { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .badge-shelf, .complete .badge-shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

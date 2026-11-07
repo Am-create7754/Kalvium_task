@@ -23,10 +23,10 @@
 
   const LEVELS = [
     { xp: 0, name: 'Chunk Rookie' },
-    { xp: 80, name: 'Chunk Apprentice' },
-    { xp: 180, name: 'Chunk Builder' },
-    { xp: 300, name: 'Retrieval Ranger' },
-    { xp: 420, name: 'RAG Master' }
+    { xp: 100, name: 'Chunk Apprentice' },
+    { xp: 220, name: 'Chunk Builder' },
+    { xp: 360, name: 'Retrieval Ranger' },
+    { xp: 500, name: 'RAG Master' }
   ];
   const BADGES = [
     { id: 'first-cut', ic: '✂️', name: 'First Cut', desc: 'Generate chunks in the Lab' },
@@ -36,6 +36,8 @@
     { id: 'detective', ic: '🔎', name: 'Retrieval Detective', desc: 'Ask the RAG assistant a question' },
     { id: 'fragment', ic: '💥', name: 'Fragment Finder', desc: 'Discover an answer sliced by bad chunking' },
     { id: 'explorer', ic: '📄', name: 'Doc Explorer', desc: 'Bring your own document' },
+    { id: 'tokens', ic: '🔤', name: 'Token Tamer', desc: 'Chunk by real GPT tokens in the Lab' },
+    { id: 'semantic', ic: '🧭', name: 'Meaning Matcher', desc: 'Compare keyword and real semantic search' },
     { id: 'engineer', ic: '🛠️', name: 'Doc Engineer', desc: 'Pass all 3 challenge tests' },
     { id: 'quiz', ic: '🧠', name: 'Quiz Whiz', desc: 'Score 5 or more in the quiz' },
     { id: 'champion', ic: '🏆', name: 'PRISM Champion', desc: 'Complete every module' }
@@ -345,6 +347,7 @@
         break;
       case 'lab-generate':
         award('first-cut', $('#labGenerate'));
+        if (d.strategy === 'token') award('tokens', $('#labStrategy'));
         if (d.overlap > 0 && d.redundant > 0) award('bridge', $('#labOverlap'));
         if (d.strategy === 'sentence' && d.cuts === 0 && d.chunks > 1) award('surgeon', $('#labChunks'));
         if (d.chunks > 60) mascot('shock', d.chunks + ' chunks?! That\'s a lot of tiny pieces 😵');
@@ -364,6 +367,20 @@
         if (d.passed === 3) { award('engineer', $('#chSubmit')); burstAt($('#chSubmit'), 70, 1.2); mascot('cheer', 'All tests green! Real engineer vibes 🛠️'); }
         else mascot('think', d.passed + '/3 tests green. Tweak the dials and try again!');
         break;
+      case 'predict':
+      case 'quick-check': {
+        st.checks = st.checks || [];
+        const key = d.type + ':' + d.id;
+        if (d.correct && !st.checks.includes(key)) { st.checks.push(key); save(); addXP(5, d.anchor); }
+        if (d.correct) { burstAt(d.anchor, 18, 0.6); mascot('happy', d.type === 'predict' ? 'Great prediction! Now test it in the demo 🔮' : pickCheer()); }
+        else mascot(d.type === 'predict' ? 'think' : 'sad', d.type === 'predict' ? 'Surprising, right? That\'s how learning sticks 🧠' : 'Close! The explanation shows why 👇');
+        break;
+      }
+      case 'semantic-ready': mascot('cheer', 'A real AI model is running on your device! 🧭', true); break;
+      case 'semantic-compare':
+        award('semantic', $('#semPanel'));
+        if (d.differ) mascot('shock', 'See? Keyword and meaning disagree! 👀');
+        break;
       case 'quiz-answer':
         if (d.correct) {
           if (!st.quizRight.includes(d.i)) { st.quizRight.push(d.i); save(); addXP(10, d.anchor); }
@@ -376,7 +393,7 @@
         if (d.score === d.total) { rain(); mascot('cheer', 'PERFECT SCORE! 🧠✨'); }
         break;
       case 'reset':
-        st = { xp: 0, badges: [], quizRight: [], calm: st.calm };
+        st = { xp: 0, badges: [], quizRight: [], checks: [], calm: st.calm };
         save(); renderXP(); renderBadges();
         break;
     }

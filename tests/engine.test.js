@@ -255,4 +255,34 @@ test('English behaviour unchanged by Unicode support', () => {
   assert.strictEqual(R.normalize('the'), '');
 });
 
+console.log('\nToken-based chunking (fake character encoder)');
+const T = require('../js/tokenizer.js');
+const encChars = (s) => Array.from(s).map((ch) => ch.codePointAt(0));
+const decChars = (ids) => String.fromCodePoint.apply(null, ids);
+
+test('token windows: exact size, step = size − overlap, no redundant tail', () => {
+  const r = T.chunkIds(encChars('abcdefghij'), decChars, 4, 1);
+  assert.deepStrictEqual(r.chunks.map((c) => c.text), ['abcd', 'defg', 'ghij']);
+  assert.deepStrictEqual(r.chunks.map((c) => c.overlapPrev), [0, 1, 1]);
+  assert.strictEqual(r.unit, 'token');
+  assert.strictEqual(r.stats.redundantWords, 2);
+});
+
+test('token chunks flag mid-word and mid-sentence cuts', () => {
+  const r = T.chunkIds(encChars('Hello world. Bye now.'), decChars, 8, 0);
+  assert.strictEqual(r.chunks[0].text, 'Hello wo');
+  assert.strictEqual(r.chunks[0].endsMidWord, true);
+  assert.strictEqual(r.chunks[0].endsMidSentence, true);
+  assert.ok(r.stats.midWordCuts >= 1);
+  const last = r.chunks[r.chunks.length - 1];
+  assert.strictEqual(last.endsMidWord, false);
+});
+
+test('token chunking: empty input and overlap clamping', () => {
+  assert.strictEqual(T.chunkIds([], decChars, 5, 2).chunks.length, 0);
+  const r = T.chunkIds(encChars('abcdef'), decChars, 3, 99);
+  assert.strictEqual(r.settings.overlap, 2);
+  assert.strictEqual(r.chunks[r.chunks.length - 1].end, 6);
+});
+
 console.log('\n' + passed + ' tests passed' + (process.exitCode ? ' — SOME FAILED' : '') + '\n');

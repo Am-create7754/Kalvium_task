@@ -60,8 +60,11 @@
   }
 
   /** Chunk text with the overlapping prefix wrapped in coral. */
-  function chunkHTML(chunk) {
+  /** One token as a visible pill (spaces kept, newlines shown as ↵). */
+  const tokPill = (p, cls) => '<span class="tok' + (cls || '') + '">' + esc(p).replace(/\n/g, '↵') + '</span>';
+  function chunkHTML(chunk, unit) {
     const ov = chunk.overlapPrev;
+    if (unit === 'token') return chunk.words.map((p, i) => tokPill(p, i < ov ? ' tok--ov' : '')).join('');
     const head = chunk.words.slice(0, ov).map(esc).join(' ');
     const rest = chunk.words.slice(ov).map(esc).join(' ');
     return (ov ? '<span class="ov" title="Repeated from previous chunk">' + head + '</span> ' : '') + rest;
@@ -69,12 +72,14 @@
   function rowChunk(c) {
     return '<div class="row-chunk' + (c.endsMidSentence ? ' is-cut' : '') + '"><span class="row-chunk__n">#' + (c.index + 1) + '</span><span>' + chunkHTML(c) + '</span></div>';
   }
-  function chunkCard(c, extra) {
-    return '<article class="chunk-card' + (c.endsMidSentence ? ' is-cut' : '') + (extra || '') + '" style="--i:' + c.index + '">' +
+  function chunkCard(c, extra, unit) {
+    const u = unit === 'token' ? 'tokens' : 'words';
+    return '<article class="chunk-card' + (c.endsMidSentence ? ' is-cut' : '') + (extra || '') + (unit === 'token' ? ' chunk-card--tok' : '') + '" style="--i:' + c.index + '">' +
       '<div class="chunk-card__head"><span class="chunk-card__n">Chunk ' + (c.index + 1) + '</span>' +
-      '<span class="chunk-card__meta">' + c.wordCount + ' words' + (c.overlapPrev ? ' · ' + c.overlapPrev + ' overlap' : '') + '</span></div>' +
-      '<div class="chunk-card__body">' + chunkHTML(c) + '</div>' +
-      (c.endsMidSentence ? '<span class="cut-badge">✂ cut mid-sentence</span>' : '') +
+      '<span class="chunk-card__meta">' + c.wordCount + ' ' + u + (c.overlapPrev ? ' · ' + c.overlapPrev + ' overlap' : '') + '</span></div>' +
+      '<div class="chunk-card__body">' + chunkHTML(c, unit) + '</div>' +
+      (c.endsMidWord ? '<span class="cut-badge">✂ cut mid-word</span> ' : '') +
+      (c.endsMidSentence && !c.endsMidWord ? '<span class="cut-badge">✂ cut mid-sentence</span>' : '') +
       '</article>';
   }
   function statTile(v, k, coral) { return '<div class="stat' + (coral ? ' stat--coral' : '') + '"><span class="stat__v">' + v + '</span><span class="stat__k">' + k + '</span></div>'; }
@@ -252,11 +257,28 @@
       const words = E.toWords(t);
       $('#umChars').textContent = t.trim().length;
       $('#umWords').textContent = words.length;
-      $('#umTokens').textContent = E.estimateTokens(t);
       $('#umSent').textContent = words.length ? E.toSentences(words).length : 0;
+      if (window.Tok && Tok.ready()) {
+        // REAL token count + every token shown as a pill
+        const pieces = Tok.pieces(t.trim()).slice(0, 400);
+        $('#umTokens').textContent = Tok.count(t.trim());
+        $('#umTokLabel').textContent = 'tokens (real cl100k_base)';
+        $('#umTokView').innerHTML = pieces.length
+          ? pieces.map((p) => tokPill(p.text)).join('') + '<p class="tiny muted tok-view__note">Each coloured block is one token. Notice how common words are one token, while rare words, numbers and symbols split into pieces. A leading space belongs to the token.</p>'
+          : '';
+        $('#umTokNote').textContent = 'Counted with cl100k_base, the real tokenizer used by GPT-4 and OpenAI\'s text-embedding-3 models. Other models use other tokenizers, so counts differ slightly.';
+      } else {
+        $('#umTokens').textContent = E.estimateTokens(t);
+      }
     };
     ui.addEventListener('input', measure);
     measure();
+    // Load the real tokenizer when the learner reaches this box (≈1 MB, once).
+    const loadTok = () => window.Tok && Tok.load().then(measure).catch(() => { $('#umTokNote').textContent = 'Real tokenizer unavailable offline — showing the characters ÷ 4 estimate.'; });
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); loadTok(); } }, { rootMargin: '300px' });
+      io.observe($('#unitMeter'));
+    } else loadTok();
   }
 
   // =================================================================
@@ -273,15 +295,19 @@
     const counts = () => {
       $('#labWordCount').textContent = E.toWords(input.value).length;
       $('#labCharCount').textContent = input.value.length;
-      $('#labTokCount').textContent = E.estimateTokens(input.value);
+      $('#labTokCount').textContent = (window.Tok && Tok.ready()) ? Tok.count(input.value).toLocaleString() + ' real' : '≈ ' + E.estimateTokens(input.value);
     };
+    document.addEventListener('chunklab', (e) => { if (e.detail && e.detail.type === 'tokenizer-ready') counts(); });
     const formula = () => {
-      $('#labFormula').textContent = lab.strategy === 'fixed'
-        ? 'step S = C − O = ' + lab.size + ' − ' + lab.overlap + ' = ' + (lab.size - lab.overlap) + (lab.size - lab.overlap === 1 ? ' word' : ' words') + ' — each new chunk starts this far after the previous one'
-        : 'pack whole sentences up to ' + lab.size + ' words · new paragraph = new chunk · carry ≤ ' + lab.overlap + ' words of trailing sentences';
-      $('#labOverlapHint').textContent = lab.strategy === 'fixed'
-        ? 'Max overlap = chunk size − 1, so every chunk moves forward.'
-        : 'Sentence mode repeats whole sentences only — if the last sentence is longer than the overlap, nothing is repeated.';
+      const unit = lab.strategy === 'token' ? 'token' : 'word';
+      $$('[data-lab-unit]').forEach((u) => { u.textContent = unit + 's'; });
+      $('#labFormula').textContent = lab.strategy === 'sentence'
+        ? 'pack whole sentences up to ' + lab.size + ' words · new paragraph = new chunk · carry ≤ ' + lab.overlap + ' words of trailing sentences'
+        : 'step S = C − O = ' + lab.size + ' − ' + lab.overlap + ' = ' + (lab.size - lab.overlap) + ' ' + unit + (lab.size - lab.overlap === 1 ? '' : 's') + ' — each new chunk starts this far after the previous one' +
+          (unit === 'token' ? ' · measured with the real cl100k_base tokenizer' : '');
+      $('#labOverlapHint').textContent = lab.strategy === 'sentence'
+        ? 'Sentence mode repeats whole sentences only — if the last sentence is longer than the overlap, nothing is repeated.'
+        : 'Max overlap = chunk size − 1, so every chunk moves forward.';
     };
     const auto = debounce(() => { if (lab.generated) generate(); }, 140);
 
@@ -313,20 +339,35 @@
     counts(); formula();
     generate(false, true);    // show an initial result so the panel is never empty
     initCompare();
+    initExport();
   }
 
   function generate(fromButton, initial) {
     const text = $('#labInput').value;
-    const out = E.chunkText(text, { strategy: lab.strategy, size: lab.size, overlap: lab.overlap });
+    const opts = { strategy: lab.strategy, size: lab.size, overlap: lab.overlap };
+
+    // Token mode needs the real tokenizer: load it once, then re-run.
+    if (lab.strategy === 'token' && !(window.Tok && Tok.ready())) {
+      $('#labChunks').innerHTML = '<div class="empty-out">Loading the real GPT tokenizer (cl100k_base, about 1 MB)…</div>';
+      $('#labFeedback').innerHTML = '';
+      if (window.Tok) Tok.load().then(() => { if (lab.strategy === 'token') generate(fromButton); })
+        .catch((err) => { $('#labChunks').innerHTML = '<div class="empty-out">' + esc(err.message) + ' Switch to fixed-size or sentence mode to keep experimenting.</div>'; });
+      return;
+    }
+    const out = lab.strategy === 'token' ? Tok.chunkText(text, opts) : E.chunkText(text, opts);
     const st = out.stats;
+    const unit = out.unit === 'token' ? 'token' : 'word';
+    const us = unit + 's';
 
     $('#labStats').innerHTML =
-      statTile(st.totalWords, 'total words') +
+      statTile(st.totalWords.toLocaleString(), 'total ' + us) +
       statTile(st.chunkCount, 'chunks') +
-      statTile(fmt(st.avgChunkSize), 'avg words / chunk') +
+      statTile(fmt(st.avgChunkSize), 'avg ' + us + ' / chunk') +
       statTile(out.settings.overlap, 'overlap setting') +
-      statTile(st.redundantWords, 'redundant words (stored twice)', true) +
-      statTile(st.midSentenceBreaks, 'chunks cut mid-sentence', true);
+      statTile(st.redundantWords, 'redundant ' + us + ' (stored twice)', true) +
+      (unit === 'token'
+        ? statTile(st.midWordCuts, 'chunks cut mid-word', true)
+        : statTile(st.midSentenceBreaks, 'chunks cut mid-sentence', true));
 
     if (!out.chunks.length) {
       $('#labChunks').innerHTML = '<div class="empty-out">Your document is empty. Type or paste some text, or press <b>Restore sample</b>.</div>';
@@ -334,7 +375,7 @@
     } else {
       // Large uploaded documents: render a capped number of cards (stats still use ALL chunks).
       const CAP = 200;
-      $('#labChunks').innerHTML = out.chunks.slice(0, CAP).map((c) => chunkCard(c)).join('') +
+      $('#labChunks').innerHTML = out.chunks.slice(0, CAP).map((c) => chunkCard(c, '', out.unit)).join('') +
         (out.chunks.length > CAP ? '<p class="cap-note">Showing the first ' + CAP + ' of ' + out.chunks.length.toLocaleString() + ' chunks. The statistics above include every chunk.</p>' : '');
       $('#labMap').innerHTML = textMap(out);
     }
@@ -344,21 +385,156 @@
     let change = '';
     if (p && !initial && out.chunks.length) {
       const bits = [];
-      if (p.settings.strategy !== out.settings.strategy) bits.push('strategy changed to <b>' + (out.settings.strategy === 'fixed' ? 'fixed-size' : 'sentence-based') + '</b>');
+      if (p.settings.strategy !== out.settings.strategy) bits.push('strategy changed to <b>' + ({ fixed: 'fixed-size', sentence: 'sentence-based', token: 'token-based' })[out.settings.strategy] + '</b>');
       if (p.settings.size !== out.settings.size) bits.push('chunk size ' + (out.settings.size > p.settings.size ? 'increased' : 'decreased') + ' from ' + p.settings.size + ' to <b>' + out.settings.size + '</b>');
       if (p.settings.overlap !== out.settings.overlap) bits.push('overlap ' + (out.settings.overlap > p.settings.overlap ? 'increased' : 'decreased') + ' from ' + p.settings.overlap + ' to <b>' + out.settings.overlap + '</b>');
-      if (p.stats.totalWords !== st.totalWords) bits.push('the document changed (' + p.stats.totalWords + ' → ' + st.totalWords + ' words)');
+      const sameUnit = (p.unit || 'word') === (out.unit || 'word');
+      if (sameUnit && p.stats.totalWords !== st.totalWords) bits.push('the document changed (' + p.stats.totalWords + ' → ' + st.totalWords + ' ' + us + ')');
+      if (!sameUnit) bits.push('size is now measured in <b>' + us + '</b> (' + st.totalWords + ' ' + us + ' in this document)');
       if (bits.length) {
-        change = '<b>What changed:</b> ' + bits.join(', ') + '. Result: <b>' + p.stats.chunkCount + ' → ' + st.chunkCount + '</b> chunks, redundant words <b>' + p.stats.redundantWords + ' → ' + st.redundantWords + '</b>, mid-sentence cuts <b>' + p.stats.midSentenceBreaks + ' → ' + st.midSentenceBreaks + '</b>.';
+        change = '<b>What changed:</b> ' + bits.join(', ') + '. Result: <b>' + p.stats.chunkCount + ' → ' + st.chunkCount + '</b> chunks' +
+          (sameUnit ? ', redundant ' + us + ' <b>' + p.stats.redundantWords + ' → ' + st.redundantWords + '</b>' : '') +
+          ', mid-sentence cuts <b>' + p.stats.midSentenceBreaks + ' → ' + st.midSentenceBreaks + '</b>.';
       }
     }
     $('#labChange').innerHTML = change;
+    if (!$('#labCodeOut').hidden) $('#labCodeText').textContent = pythonFor(out.settings);
     lab.prev = out;
     lab.last = out;
     $('#labFeedback').innerHTML = labFeedback(out);
     if (fromButton && P) { P.markDone('lab'); }
     if (!initial && st.totalWords) emit('lab-generate', { overlap: out.settings.overlap, redundant: st.redundantWords, strategy: out.settings.strategy, cuts: st.midSentenceBreaks, chunks: st.chunkCount });
     renderCompare();
+  }
+
+  // ---------- Practical output: JSON export + runnable Python ----------
+  /** Python that reproduces PRISM's chunks for the given settings (verified against the JS engine). */
+  function pythonFor(s) {
+    if (s.strategy === 'token') return [
+      '# pip install langchain-text-splitters tiktoken',
+      'from langchain_text_splitters import TokenTextSplitter',
+      '',
+      'text = open("document.txt", encoding="utf-8").read()',
+      '',
+      '# Fixed windows of real tokens (cl100k_base = GPT-4 / text-embedding-3 tokenizer)',
+      'splitter = TokenTextSplitter(encoding_name="cl100k_base",',
+      '                             chunk_size=' + s.size + ', chunk_overlap=' + s.overlap + ')',
+      'chunks = splitter.split_text(text)',
+      '',
+      'print(len(chunks), "chunks")',
+      'print(chunks[0])'
+    ].join('\n');
+    if (s.strategy === 'sentence') return [
+      'import re',
+      '',
+      'END = re.compile(r"[.!?\\u0964\\u0965\\u3002\\uff01\\uff1f][\\u0022\\u0027\\u201d\\u2019)\\]]*$")  # word that ends a sentence (. ! ? and Hindi/CJK stops)',
+      '',
+      'def sentence_chunks(text, size=' + s.size + ', overlap=' + s.overlap + '):',
+      '    """Pack whole sentences into chunks of at most `size` words.',
+      '    A new paragraph always starts a new chunk; overlap carries whole',
+      '    trailing sentences (at most `overlap` words) into the next chunk."""',
+      '    overlap = min(overlap, size - 1)',
+      '    chunks = []',
+      '    for paragraph in re.split(r"\\n\\s*\\n", text):',
+      '        sentences, current = [], []',
+      '        for word in paragraph.split():',
+      '            current.append(word)',
+      '            if END.search(word):',
+      '                sentences.append(current)',
+      '                current = []',
+      '        if current:',
+      '            sentences.append(current)',
+      '',
+      '        chunk, fresh = [], 0   # sentences in the chunk, and how many are new',
+      '        for s in sentences:',
+      '            if len(s) > size:  # one sentence longer than the limit: fixed windows',
+      '                if fresh:',
+      '                    chunks.append(" ".join(w for x in chunk for w in x))',
+      '                step = size - overlap',
+      '                for i in range(0, len(s), step):',
+      '                    chunks.append(" ".join(s[i:i + size]))',
+      '                    if i + size >= len(s):',
+      '                        break',
+      '                chunk, fresh = [], 0',
+      '                continue',
+      '            if chunk and sum(map(len, chunk)) + len(s) > size:',
+      '                chunks.append(" ".join(w for x in chunk for w in x))',
+      '                carry, carried = [], 0',
+      '                for x in reversed(chunk):',
+      '                    if carried + len(x) <= overlap and carried + len(x) + len(s) <= size:',
+      '                        carry.insert(0, x)',
+      '                        carried += len(x)',
+      '                    else:',
+      '                        break',
+      '                chunk, fresh = carry, 0',
+      '            chunk.append(s)',
+      '            fresh += 1',
+      '        if fresh:',
+      '            chunks.append(" ".join(w for x in chunk for w in x))',
+      '    return chunks',
+      '',
+      'text = open("document.txt", encoding="utf-8").read()',
+      'chunks = sentence_chunks(text)',
+      'print(len(chunks), "chunks")'
+    ].join('\n');
+    return [
+      'text = open("document.txt", encoding="utf-8").read()',
+      'words = text.split()',
+      '',
+      'size, overlap = ' + s.size + ', ' + s.overlap + '   # in words',
+      'overlap = min(overlap, size - 1)   # the step must be at least 1 word',
+      'step = size - overlap        # each new chunk starts this many words after the previous one',
+      '',
+      'chunks = []',
+      'for start in range(0, len(words), step):',
+      '    chunks.append(" ".join(words[start:start + size]))',
+      '    if start + size >= len(words):   # reached the end: no empty or duplicate tail',
+      '        break',
+      '',
+      'print(len(chunks), "chunks")'
+    ].join('\n');
+  }
+
+  function exportJSON() {
+    const out = lab.last;
+    if (!out || !out.chunks.length) { P.toast('Nothing to export yet. Add some text first.'); return; }
+    const unit = out.unit === 'token' ? 'tokens' : 'words';
+    const data = {
+      generator: 'PRISM — Interactive Chunk Playground',
+      created: new Date().toISOString(),
+      settings: Object.assign({ strategy: out.settings.strategy, chunk_size: out.settings.size, chunk_overlap: out.settings.overlap, unit: unit },
+        out.unit === 'token' ? { tokenizer: 'cl100k_base' } : {}),
+      stats: { total: out.stats.totalWords, chunks: out.stats.chunkCount, avg_chunk_size: Number(out.stats.avgChunkSize.toFixed(2)),
+        redundant: out.stats.redundantWords, cut_mid_sentence: out.stats.midSentenceBreaks },
+      chunks: out.chunks.map((c) => ({
+        id: 'chunk-' + String(c.index + 1).padStart(4, '0'), index: c.index, text: c.text,
+        start: c.start, end: c.end, length: c.wordCount, overlap_with_previous: c.overlapPrev, ends_mid_sentence: c.endsMidSentence
+      }))
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'prism-chunks-' + out.settings.strategy + '-' + out.settings.size + '-' + out.settings.overlap + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    P.toast('Exported ' + data.chunks.length + ' chunks as JSON');
+    emit('export', { anchor: $('#labExport') });
+  }
+
+  function initExport() {
+    $('#labExport').addEventListener('click', exportJSON);
+    $('#labCodeBtn').addEventListener('click', () => {
+      const box = $('#labCodeOut'), open = box.hidden;
+      box.hidden = !open;
+      $('#labCodeBtn').setAttribute('aria-expanded', String(open));
+      if (open) { $('#labCodeText').textContent = pythonFor(lab.last ? lab.last.settings : { strategy: lab.strategy, size: lab.size, overlap: lab.overlap }); emit('code', { anchor: $('#labCodeBtn') }); }
+    });
+    $('#labCopy').addEventListener('click', () => {
+      const txt = $('#labCodeText').textContent;
+      const done = () => P.toast('Python code copied');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => P.toast('Select the code and copy it manually'));
+      else P.toast('Select the code and copy it manually');
+    });
   }
 
   /** Original text, coloured by chunk; words shared by two chunks in coral. */
@@ -371,13 +547,14 @@
     return out.words.slice(0, LIMIT).map((w, i) => {
       const mark = starts.has(i) ? '<span class="tm-break" aria-label="Chunk ' + (starts.get(i) + 1) + ' starts">▸' + (starts.get(i) + 1) + '</span>' : '';
       const cls = cover[i] > 1 ? 'tm-ov' : (owner[i] % 2 ? 'tm-b' : 'tm-a');
-      return mark + '<span class="tm-w ' + cls + '">' + esc(w) + '</span>';
-    }).join(' ') + (out.words.length > LIMIT ? '<p class="cap-note">Showing the first ' + LIMIT.toLocaleString() + ' of ' + out.words.length.toLocaleString() + ' words.</p>' : '');
+      return mark + '<span class="tm-w ' + cls + (out.unit === 'token' ? ' tm-tok' : '') + '">' + esc(w).replace(/\n/g, '↵') + '</span>';
+    }).join(out.unit === 'token' ? '' : ' ') + (out.words.length > LIMIT ? '<p class="cap-note">Showing the first ' + LIMIT.toLocaleString() + ' of ' + out.words.length.toLocaleString() + ' words.</p>' : '');
   }
 
   /** Contextual feedback — describes the trade-offs, never declares a "best". */
   function labFeedback(out) {
     const st = out.stats, s = out.settings;
+    const us = out.unit === 'token' ? 'tokens' : 'words';
     const fb = [];
     const add = (t, cls) => fb.push('<div class="fb' + (cls ? ' fb--' + cls : '') + '"><div>' + t + '</div></div>');
     if (!st.totalWords) { add('Add some text to see how it gets chunked.', 'warn'); return fb.join(''); }
@@ -387,12 +564,16 @@
     else add('Medium-sized chunks: a balance between focus and context for this document.');
 
     const ratio = s.overlap / s.size;
-    if (s.overlap === 0) add('<b>No overlap:</b> every word is stored once. Ideas that cross a boundary may be split' + (st.midSentenceBreaks ? ' — here ' + st.midSentenceBreaks + ' chunk' + (st.midSentenceBreaks > 1 ? 's end' : ' ends') + ' mid-sentence.' : '.'));
-    else if (ratio >= 0.5) add('<b>High overlap increases repeated content:</b> ' + st.redundantWords + ' words (' + fmt(st.redundancyPct, 0) + '% of the document) are stored more than once. That means more storage, more embeddings, and near-duplicate search results.', 'warn');
-    else if (st.redundantWords > 0) add('Your overlap helps <b>preserve context between neighbouring chunks</b> at a cost of ' + st.redundantWords + ' repeated words (' + fmt(st.redundancyPct, 0) + '% extra).');
+    if (s.overlap === 0) add('<b>No overlap:</b> every ' + (out.unit === 'token' ? 'token' : 'word') + ' is stored once. Ideas that cross a boundary may be split' + (st.midSentenceBreaks ? ' — here ' + st.midSentenceBreaks + ' chunk' + (st.midSentenceBreaks > 1 ? 's end' : ' ends') + ' mid-sentence.' : '.'));
+    else if (ratio >= 0.5) add('<b>High overlap increases repeated content:</b> ' + st.redundantWords + ' ' + us + ' (' + fmt(st.redundancyPct, 0) + '% of the document) are stored more than once. That means more storage, more embeddings, and near-duplicate search results.', 'warn');
+    else if (st.redundantWords > 0) add('Your overlap helps <b>preserve context between neighbouring chunks</b> at a cost of ' + st.redundantWords + ' repeated ' + us + ' (' + fmt(st.redundancyPct, 0) + '% extra).');
     else add('You set an overlap, but in sentence mode only whole sentences are repeated — none of the trailing sentences fit inside ' + s.overlap + ' words, so nothing was repeated.');
 
-    if (s.strategy === 'sentence') add('<b>Sentence-based:</b> chunks end at sentence boundaries' + (st.midSentenceBreaks ? ' (except ' + st.midSentenceBreaks + ' where a single sentence was longer than the limit)' : '') + ', so their sizes vary (' + st.minChunk + '–' + st.maxChunk + ' words).');
+    if (s.strategy === 'token') {
+      const words = E.toWords(lab.last ? $('#labInput').value : '').length;
+      add('<b>Token-based (real cl100k_base tokenizer):</b> ' + st.totalWords + ' tokens for ' + words + ' words — about ' + fmt(words ? st.totalWords / words : 0) + ' tokens per word. Every chunk is exactly ' + s.size + ' tokens (the last may be shorter), which is how model and embedding limits are measured.');
+      if (st.midWordCuts) add('<b>' + st.midWordCuts + ' chunk' + (st.midWordCuts > 1 ? 's are' : ' is') + ' cut mid-word</b> (look for the ✂ badge): a token window can end inside a word that the tokenizer split into pieces. Production splitters therefore count tokens but snap the cut to a sentence or paragraph boundary.', 'warn');
+    } else if (s.strategy === 'sentence') add('<b>Sentence-based:</b> chunks end at sentence boundaries' + (st.midSentenceBreaks ? ' (except ' + st.midSentenceBreaks + ' where a single sentence was longer than the limit)' : '') + ', so their sizes vary (' + st.minChunk + '–' + st.maxChunk + ' words).');
     else if (st.midSentenceBreaks) add('<b>Fixed-size:</b> every chunk has a predictable size, but ' + st.midSentenceBreaks + ' of ' + st.chunkCount + ' chunks are cut mid-sentence. Try sentence-based mode and compare.');
 
     add('There is no universally best setting. The right choice depends on your document\'s structure, the questions users ask, and your model\'s token limits.', 'good');
@@ -550,7 +731,82 @@
     resetRagResult(text ? 'Your document is chunked and ready. Pick a suggested topic or type a question.' : 'Upload or paste a document to begin.');
   }
 
+  // ---------- Real semantic search (optional) ----------
+  let semRun = 0;
+  const PARAPHRASES = [
+    'Is there a penalty for handing in homework after the due date?',
+    'Do I have to pay extra if I sign up for courses late?',
+    'Can I change my subjects after the semester starts?',
+    'What should I bring to the exam hall?'
+  ];
+  function initSemantic() {
+    const btn = $('#semLoad');
+    btn.addEventListener('click', () => {
+      btn.disabled = true;
+      btn.textContent = 'Loading model…';
+      $('#semBar').hidden = false;
+      Semantic.load((pct) => { $('#semBar span').style.width = pct + '%'; btn.textContent = 'Downloading… ' + pct + '%'; })
+        .then(() => {
+          btn.textContent = 'Model ready ✓';
+          $('#semBar').hidden = true;
+          $('#semSamples').hidden = false;
+          $('#semSamples').innerHTML = '<span class="chips__label">Try questions worded differently from the handbook:</span>' +
+            PARAPHRASES.map((q) => '<button type="button" class="chip" data-sq="' + esc(q) + '">' + esc(q) + '</button>').join('');
+          emit('semantic-ready', { anchor: btn });
+          if (rag.query) ask(rag.query);
+          else $('#semResult').innerHTML = '<div class="fb fb--good"><div>Model loaded. Ask any question above, and both rankings will appear here.</div></div>';
+        })
+        .catch((err) => {
+          btn.disabled = false;
+          btn.textContent = 'Retry loading model';
+          $('#semBar').hidden = true;
+          $('#semResult').innerHTML = '<div class="fb fb--warn"><div>Could not load the model (' + esc(err.message || 'network error') + '). It needs an internet connection the first time. Everything else in PRISM keeps working.</div></div>';
+        });
+    });
+    $('#semSamples').addEventListener('click', (e) => {
+      const c = e.target.closest('[data-sq]');
+      if (!c) return;
+      if (rag.src !== 'sample') ragSrcSeg.select('sample');
+      $('#ragQuery').value = c.dataset.sq;
+      ask(c.dataset.sq);
+      $('#ragForm').scrollIntoView({ behavior: isCalm() ? 'auto' : 'smooth', block: 'start' });
+    });
+  }
+
+  /** Rank the SAME chunks by meaning and show it next to the keyword ranking. */
+  async function runSemantic(q, out, r) {
+    if (!window.Semantic || !Semantic.ready() || !out.chunks.length) return;
+    const id = ++semRun;
+    const box = $('#semResult');
+    box.innerHTML = '<p class="small muted">Embedding ' + Math.min(out.chunks.length, Semantic.MAX_CHUNKS) + ' chunks and your question…</p>';
+    let sem;
+    try { sem = await Semantic.search(q, out.chunks, 3); } catch (e) { box.innerHTML = '<div class="fb fb--warn"><div>Embedding failed: ' + esc(e.message) + '</div></div>'; return; }
+    if (id !== semRun) return;                       // a newer question was asked meanwhile
+    const kwTop = r.results.map((x) => x.chunk.index);
+    const semTop = sem.map((x) => x.chunk.index);
+    const col = (title, sub, items) => '<div class="sem__col"><h4>' + title + '</h4><p class="tiny muted">' + sub + '</p>' +
+      (items.length ? items.join('') : '<div class="fb fb--warn"><div>No chunk shares a keyword with the question.</div></div>') + '</div>';
+    const item = (c, scoreTxt, pct, both) => '<div class="sem__item' + (both ? ' is-both' : '') + '"><div class="ret-card__head"><span class="chunk-card__n">Chunk ' + (c.index + 1) + '</span>' +
+      '<span class="ret-card__score">' + scoreTxt + ' <i style="--s:' + pct + '%"></i></span></div><div class="ret-card__txt">' + esc(c.text) + '</div></div>';
+    const kwMax = r.results[0] ? r.results[0].score : 1;
+    const kwItems = r.results.map((x) => item(x.chunk, 'score ' + x.score.toFixed(2), Math.round((x.score / kwMax) * 100), semTop.includes(x.chunk.index)));
+    const semItems = sem.map((x) => item(x.chunk, 'similarity ' + x.score.toFixed(2), Math.max(4, Math.round(x.score * 100)), kwTop.includes(x.chunk.index)));
+    let verdict;
+    if (!kwTop.length) verdict = '<b>Keyword search found nothing</b>: none of your words appear in the document. Semantic search still ranked chunks by <b>meaning</b>, which is why production RAG uses embeddings.';
+    else if (kwTop[0] === semTop[0]) verdict = '<b>Both methods agree on the top chunk.</b> When a question uses the same words as the document, keyword search works well too.';
+    else verdict = '<b>The rankings differ.</b> Keyword search rewards exact word matches; semantic search rewards similar meaning, even with different words (for example "handing in homework late" ↔ "late submissions… penalty").';
+    box.innerHTML = '<div class="fb"><div>' + verdict + ' Chunks found by <b>both</b> are outlined.</div></div>' +
+      '<div class="sem__grid">' +
+        col('Keyword (TF-IDF)', 'Counts shared words', kwItems) +
+        col('Semantic (embeddings)', 'Cosine similarity of meaning, from −1 to 1', semItems) +
+      '</div>' +
+      (out.chunks.length > Semantic.MAX_CHUNKS ? '<p class="tiny muted">Searched the first ' + Semantic.MAX_CHUNKS + ' chunks.</p>' : '') +
+      '<p class="tiny muted">Same chunks, same question, two retrieval methods. Change the chunk size on the left and ask again: chunking changes what <i>both</i> methods can find.</p>';
+    emit('semantic-compare', { differ: kwTop[0] !== semTop[0] });
+  }
+
   function initRag() {
+    initSemantic();
     const size = $('#ragSize'), ov = $('#ragOverlap');
     const seg = bindSeg($('#ragStrategy'), 'strategy', (v) => { rag.strategy = v; changed(); });
     bindRange(size, $('#ragSizeVal'), (v) => { rag.size = v; limitOverlap(size, ov, $('#ragOverlapVal')); rag.overlap = Number(ov.value); changed(); });
@@ -676,6 +932,7 @@
       '<li class="rs" style="--i:' + i + '"><span class="rs__n">' + (i + 1) + '</span><div class="rs__body"><h4>' + s.t + '</h4>' + s.b + '</div></li>'
     ).join('') + '</ol>' + frag;
     if (P) P.markDone('rag', P.isDone('rag'));
+    runSemantic(q, out, r);
     emit('rag-ask', { found: r.results.length > 0, fragmented: !!(r.fragmentation && r.results.length && !r.fragmentation.intactInAnyChunk) });
   }
 
@@ -792,10 +1049,10 @@
       ['Text extraction', 'live', 'PDF, DOCX, HTML → text'],
       ['Document preprocessing', 'live', 'Page numbers, hyphens, spacing'],
       ['Chunking', 'live', 'Fixed & sentence-based'],
-      ['Embedding generation', 'concept', 'Text → vectors'],
+      ['Embedding generation', 'live', 'Optional real model'],
       ['Vector database storage', 'concept', 'Indexed for search'],
       ['User query', 'live', 'Your question'],
-      ['Retrieval', 'sim', 'Keyword scoring'],
+      ['Retrieval', 'sim', 'Keyword + real semantic'],
       ['Relevant context', 'live', 'Top-3 chunks shown'],
       ['LLM response', 'sim', 'Extractive stand-in']
     ];

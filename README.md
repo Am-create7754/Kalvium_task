@@ -68,6 +68,9 @@ By the end, learners can:
 - **Feedback, not verdicts:** the Lab, Compare panel and Challenge describe trade-offs. No configuration is ever labelled "best".
 - **Honest simulation:** anything not real (embeddings, vector DB, LLM) is clearly labelled as conceptual or simulated.
 - **Progress & autonomy:** sticky nav, lesson map, 45-minute timeline, per-module "Done · Next", completion summary, and progress saved in the browser.
+- **Predict → check:** before key demos the learner commits to a prediction (e.g. "halve the size: how many chunks?"). The correct answer is **computed by the engine**, then the learner verifies it in the demo.
+- **Retrieval practice:** a one-question quick check closes five modules, plus a 📌 *Remember* card with the three ideas to keep.
+- **Jargon on demand:** the first mention of each technical term (context window, embedding, TF-IDF, cosine similarity…) shows a definition on hover, focus or tap.
 - **Play that rewards understanding:** XP and badges are tied to meaningful experiments (using overlap, finding a fragmented answer, passing retrieval tests), so the game loop reinforces the learning goals. Calm mode keeps it accessible.
 
 ---
@@ -77,7 +80,7 @@ By the end, learners can:
 ### Learn while playing (`js/fun.js`, `css/fun.css`)
 - **Chunky the mascot:** a small document character that greets each module with a tip, gives hints when tapped, and reacts to what the learner does. It is happy on correct answers, sad on wrong ones, shocked when an answer gets fragmented, and cheers on achievements.
 - **XP and 5 levels** (Chunk Rookie → RAG Master): +20 XP per module, +10 per first-time correct quiz answer, +25 per badge.
-- **10 badges for real learning actions**, not clicks. Examples: *Bridge Builder* (use overlap), *Sentence Surgeon* (sentence chunking with zero mid-sentence cuts), *Fragment Finder* (discover an answer sliced by bad chunking), *Doc Engineer* (pass all 3 challenge tests).
+- **12 badges for real learning actions**, not clicks. Examples: *Bridge Builder* (use overlap), *Sentence Surgeon* (sentence chunking with zero mid-sentence cuts), *Fragment Finder* (discover an answer sliced by bad chunking), *Doc Engineer* (pass all 3 challenge tests).
 - **"See it happen" animations:**
   - The paragraph physically slices into chunk cards (FLIP animation from each sentence's position).
   - "▶ Play the pipeline" sends a question through all 7 RAG stages.
@@ -87,6 +90,23 @@ By the end, learners can:
 - **Celebrations:** confetti bursts, floating "+XP", badge and level-up pop-ups, and confetti rain on a perfect quiz or full completion.
 - **Transitions:** scroll-reveal with staggered cards, squishy clay buttons, slider value pops, and a floating hero.
 - **Calm mode** (lesson map → toggle) switches all motion, the mascot and confetti off. It is on by default when the operating system requests reduced motion. Content and features are identical in both modes.
+
+### Real tokens (`js/tokenizer.js`)
+- Uses **cl100k_base**, the real BPE tokenizer of GPT-4 and OpenAI's text-embedding-3 models (open-source `gpt-tokenizer`, ~1 MB, loaded only when needed).
+- **Token-based chunking** in the Lab ("Tokens · GPT" strategy): exact windows of *C* tokens with step *C − O*. Chunk cards show every token as a pill, and PRISM counts chunks **cut mid-word**, a real weakness of pure token windows.
+- The Size & Overlap module counts your text with the real tokenizer and shows how rare words split into pieces ("cond|onation").
+- Falls back to the characters ÷ 4 estimate when offline.
+
+### Real semantic search (`js/semantic.js`, optional)
+- One click loads **all-MiniLM-L6-v2** (a quantised sentence-embedding model, ~23 MB) with transformers.js. It runs fully on the learner's device, with no server and no API key.
+- Every question is answered twice from the **same chunks**: keyword TF-IDF on one side, cosine similarity of 384-dimension embeddings on the other.
+- Suggested paraphrases show where meaning beats words. For example, "Is there a penalty for handing in homework after the due date?": keyword search retrieves the library-fine chunk, while semantic search retrieves the late-submission rule.
+
+### From playground to project
+- **Export JSON:** downloads the chunks with ids, offsets, lengths, overlap and settings, the shape a real indexing pipeline stores.
+- **{ } Python code:** generates runnable Python for the learner's exact settings. Word and sentence modes are verified **chunk-for-chunk** against the JS engine by `tests/python_parity.js` (30 document × setting combinations). Token mode uses LangChain's `TokenTextSplitter`.
+- **Printable cheat sheet:** a one-page summary (pipeline, terms, strategies, settings checklist, symptoms → fixes, code), from the lesson map or the completion card.
+- **Welcome back:** returning learners get a prompt to continue at their next unfinished module.
 
 ### Chunking engine (`js/chunking.js`)
 - **Fixed-size word chunking:** with `N` words, size `C`, overlap `O`, and step `S = C − O`, chunk *k* starts at `k·S`. It stops as soon as a chunk reaches the end, so there is never an empty or fully duplicated trailing chunk. Overlap is clamped to `C − 1`, so `S ≥ 1` and the loop always terminates.
@@ -124,12 +144,13 @@ By the end, learners can:
 | Document upload | **Working** (upload, drag & drop, or paste) |
 | Text extraction | **Working** for TXT, MD, HTML, PDF (text-based) and DOCX. Scanned PDFs (OCR) are not supported |
 | Preprocessing | **Working** (page numbers, hyphenation, wrapped lines, whitespace) |
-| Chunking (fixed + sentence-based) | **Working**, unit-tested |
-| Embedding generation / vector DB | Conceptual only |
-| Retrieval | **Simulated** with keyword TF-IDF scoring |
+| Chunking (fixed words, sentences, real tokens) | **Working**, unit-tested; Python export verified for parity |
+| Embedding generation | **Working (optional)**: real all-MiniLM-L6-v2 model in the browser |
+| Vector database | Conceptual. Semantic search compares the question to every chunk in memory, which is what a vector DB does at scale |
+| Retrieval | Keyword TF-IDF **simulation** by default; **real** cosine-similarity retrieval once the model is loaded |
 | LLM response | **Simulated**: extractive sentences, no model |
 
-Word counts are a teaching simplification. Production systems measure chunk size in **tokens** with the model's tokenizer. The token estimate shown (characters ÷ 4) is a rule of thumb.
+Word-based modes are a teaching simplification. Production systems measure chunk size in **tokens** with the model's tokenizer, which PRISM's token mode does with the real cl100k_base tokenizer.
 
 ---
 
@@ -150,13 +171,17 @@ Word counts are a teaching simplification. Production systems measure chunk size
 │   ├── chunking.js         # Chunking engine (pure functions, Node + browser)
 │   ├── retrieval.js        # Keyword retrieval simulator (pure functions)
 │   ├── docloader.js        # Own-document upload: extraction + preprocessing
+│   ├── tokenizer.js        # Real cl100k_base tokenizer + token-based chunking
+│   ├── semantic.js         # Optional real embeddings + cosine retrieval
+│   ├── learn.js            # Predict→check, quick checks, glossary
 │   ├── progress.js         # Navigation, lesson map, timeline, progress storage
 │   ├── fun.js              # Mascot, XP, badges, confetti, reveal, calm mode
 │   ├── quiz.js             # Knowledge check
 │   └── app.js              # UI wiring for all interactive modules
 ├── samples/                # Documents to try uploading (PDF, DOCX, TXT, HTML, Hindi TXT)
 ├── tests/
-│   ├── engine.test.js      # 32 unit tests: chunking, retrieval, preprocessing, languages
+│   ├── engine.test.js      # 35 unit tests: chunking, tokens, retrieval, preprocessing, languages
+│   ├── python_parity.js    # Generated Python == JS engine (needs Python 3)
 │   └── fixtures/           # Locked + broken PDFs for error-handling checks
 ├── docs/
 │   ├── TESTING.md          # Manual QA checklist
@@ -167,11 +192,12 @@ Word counts are a teaching simplification. Production systems measure chunk size
 ---
 
 ## Testing
-- **Automated:** `node tests/engine.test.js` runs 32 tests covering empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries and headings, retrieval relevance for every sample question, fragmentation detection, document cleanup (page numbers, hyphenation, wrapped lines, truncation), retrieval on arbitrary user documents, Hindi sentence splitting and retrieval, and accent-insensitive matching.
+- **Automated:** `node tests/engine.test.js` runs 35 tests covering token windows and mid-word cuts, empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries and headings, retrieval relevance for every sample question, fragmentation detection, document cleanup (page numbers, hyphenation, wrapped lines, truncation), retrieval on arbitrary user documents, Hindi sentence splitting and retrieval, and accent-insensitive matching.
+- **Python parity:** `node tests/python_parity.js` runs the generated Python on 5 documents × 6 settings and checks the chunks are identical to PRISM's (30/30).
 - **Manual:** see [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Why "PRISM"?
 A prism splits one beam of light into separate bands, just as chunking splits one document into separate pieces. Each band can be examined on its own, and the logo shows exactly that.
 
 ## Credits
-Content, code and design are original work for this assessment. The sample university and its policies are fictional. Fonts are from Google Fonts. The LangChain snippet uses the public `langchain-text-splitters` API for illustration. PDF extraction uses [pdf.js](https://mozilla.github.io/pdf.js/) and DOCX extraction uses [mammoth.js](https://github.com/mwilliamson/mammoth.js), both loaded from cdnjs. The documents in `samples/` are fictional.
+Content, code and design are original work for this assessment. The sample university and its policies are fictional. Fonts are from Google Fonts. The LangChain snippet uses the public `langchain-text-splitters` API for illustration. PDF extraction uses [pdf.js](https://mozilla.github.io/pdf.js/) and DOCX extraction uses [mammoth.js](https://github.com/mwilliamson/mammoth.js), both loaded from cdnjs. Real tokens use [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer) and embeddings use [transformers.js](https://github.com/huggingface/transformers.js) with [all-MiniLM-L6-v2](https://huggingface.co/Xenova/all-MiniLM-L6-v2), loaded on demand from jsDelivr and Hugging Face. The documents in `samples/` are fictional.

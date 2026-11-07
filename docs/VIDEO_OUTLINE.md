@@ -31,10 +31,16 @@ Record with the site open in a browser. Show while you speak, and keep each part
 - Feedback never says "best", only trade-offs. That is deliberate: real engineers test.
 - **Learn-while-playing layer:** show Chunky reacting, a badge unlocking (e.g. *Bridge Builder* when you add overlap), and the XP bar. Explain that badges reward meaningful experiments, not clicks, so the game reinforces the learning objectives. Mention Calm mode for accessibility.
 
+### Depth moments worth showing (pick 1–2 if time is short)
+- **Real tokens:** Lab → *Tokens · GPT*. Words become token pills; point out a chunk "cut mid-word" and explain why production splitters snap to sentence boundaries.
+- **Predict → check:** answer the "halve the size" prediction, then drag the dial to confirm it. This is the pedagogy in one moment.
+- **From playground to project:** click *{ } Python code*. The generated code is tested chunk-for-chunk against the engine.
+
 ### 4:10 – 5:10 · Connecting to a real RAG app
 *Show: RAG simulation.*
 - Ask "What is the minimum attendance required?" with **Sentence · 40/0**. Walk through the 4 steps and the extractive answer.
 - Switch to **Poor: fixed · 8/0** and ask again. The answer becomes fragments and the warning shows the sentence split across chunks.
+- **Real semantic search:** click *Load embedding model*, then ask "Is there a penalty for handing in homework after the due date?". Keyword search picks the library fine; the real embedding model picks the late-submission rule. That is why production RAG uses embeddings.
 - **Bring your own document:** switch to "My own document" and drop `samples/greenleaf_member_guide.pdf`. Point at the extraction report (page numbers removed, hyphenation repaired) — the "text extraction + preprocessing" stage made visible. Ask "How many guests can I bring?"
 - Point at the honesty banner: keyword scoring, no embeddings or LLM. Then the "In production RAG" card: embeddings, vector DB, LLM.
 

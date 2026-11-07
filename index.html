@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRISM — Interactive Chunk Playground</title>
   <meta name="description" content="PRISM is an interactive chunk playground: a 45-minute lesson that teaches beginners how text chunking and document processing power Retrieval-Augmented Generation (RAG)." />
-  <link rel="icon" href="assets/images/favicon.svg?v=9" type="image/svg+xml" />
+  <link rel="icon" href="assets/images/favicon.svg?v=12" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=9" />
-  <link rel="stylesheet" href="css/components.css?v=9" />
-  <link rel="stylesheet" href="css/responsive.css?v=9" />
-  <link rel="stylesheet" href="css/fun.css?v=9" />
+  <link rel="stylesheet" href="css/style.css?v=12" />
+  <link rel="stylesheet" href="css/components.css?v=12" />
+  <link rel="stylesheet" href="css/responsive.css?v=12" />
+  <link rel="stylesheet" href="css/fun.css?v=12" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to lesson</a>
@@ -55,13 +55,14 @@
       </div>
       <p class="muted">45 minutes · self-paced. Jump anywhere — your progress is saved in this browser.</p>
       <div class="fun-panel">
-        <div class="fun-panel__row"><b class="h-sm" data-xp-level>Chunk Rookie · 0 XP</b><span class="tiny muted">Badges <b data-badge-count>0/10</b></span></div>
+        <div class="fun-panel__row"><b class="h-sm" data-xp-level>Chunk Rookie · 0 XP</b><span class="tiny muted">Badges <b data-badge-count>0/12</b></span></div>
         <div class="xp-track"><span data-xp-bar></span></div>
         <p class="tiny muted" data-xp-next></p>
         <ul class="badge-shelf" data-badge-shelf aria-label="Badges"></ul>
       </div>
       <ol class="map-list" id="mapList"><!-- filled by progress.js --></ol>
       <button class="btn btn--ghost btn--sm calm-toggle" type="button" data-calm-toggle aria-pressed="false">🎈 Play mode</button>
+      <button class="btn btn--ghost btn--sm calm-toggle" type="button" data-print-cheatsheet>🖨 Printable cheat sheet</button>
       <button class="btn btn--ghost btn--sm" id="resetProgress">Reset my progress</button>
     </div>
     <div class="drawer__scrim" id="mapScrim"></div>
@@ -204,6 +205,11 @@
         <div class="pipeline" id="pipeline" role="tablist" aria-label="RAG pipeline stages"><!-- app.js --></div>
         <div class="pipeline-detail clay" id="pipelineDetail" role="tabpanel" aria-live="polite"></div>
 
+        <aside class="recap clay" aria-label="Key points to remember">
+          <p class="recap__t">📌 Remember</p>
+          <ul><li><b>RAG retrieves first, then generates</b>: the model answers from the few chunks it is given.</li><li>Sending a whole document is slow and costly, and it may not even fit the context window.</li><li>Chunking and embedding happen <b>once, in advance</b> (indexing), not for every question.</li></ul>
+        </aside>
+        <div class="mcq clay" data-qcheck="problem"></div>
         <div class="section__foot" data-foot="problem"></div>
       </div>
     </section>
@@ -286,6 +292,11 @@
         </div>
         <p class="small muted">Both columns are generated live by PRISM's real chunking engine from the same text.</p>
 
+        <aside class="recap clay" aria-label="Key points to remember">
+          <p class="recap__t">📌 Remember</p>
+          <ul><li>A <b>chunk</b> is a small, self-contained piece of a document, and chunking is the act of cutting it.</li><li>Retrieval can only return chunks that exist, so <b>chunk quality limits answer quality</b>.</li><li><b>Fixed-size</b> = predictable but cuts sentences. <b>Structure-aware</b> = keeps meaning, sizes vary.</li></ul>
+        </aside>
+        <div class="mcq clay" data-qcheck="chunking"></div>
         <div class="section__foot" data-foot="chunking"></div>
       </div>
     </section>
@@ -312,6 +323,7 @@
           </div>
         </div>
 
+        <div class="mcq clay mcq--predict" data-predict="size"></div>
         <div class="clay try-box" id="sizeDemo">
           <p class="label label--coral">Try it · Turn the size dial</p>
           <div class="ctrl">
@@ -331,6 +343,7 @@
         </div>
         <p class="small muted">The repeated phrase (in coral) tells a reader of Chunk 2 what "external documents" refers to — continuity is preserved.</p>
 
+        <div class="mcq clay mcq--predict" data-predict="overlap"></div>
         <div class="clay try-box" id="boundaryDemo">
           <div class="try-box__head">
             <p class="label label--coral">Try it · The boundary problem</p>
@@ -366,16 +379,22 @@
         <div class="clay try-box" id="unitMeter">
           <p class="label label--coral">Try it · Measure your own text</p>
           <label for="unitInput" class="sr-only">Text to measure</label>
-          <textarea id="unitInput" rows="3" class="input">Students must carry their hall ticket and university ID card to every examination.</textarea>
+          <textarea id="unitInput" rows="3" class="input">Students below 75% attendance may request condonation. Tokenizers split rare words into pieces!</textarea>
           <div class="unit-stats">
             <div><span class="mono big" id="umChars">0</span><span>characters</span></div>
             <div><span class="mono big" id="umWords">0</span><span>words</span></div>
-            <div><span class="mono big" id="umTokens">0</span><span>tokens (estimate*)</span></div>
+            <div><span class="mono big" id="umTokens">0</span><span id="umTokLabel">tokens (estimate*)</span></div>
             <div><span class="mono big" id="umSent">0</span><span>sentences</span></div>
           </div>
-          <p class="tiny muted">*Estimated as characters ÷ 4, a common rule of thumb for English. A real tokenizer would give a slightly different number.</p>
+          <div class="tok-view" id="umTokView" aria-label="The text split into tokens"></div>
+          <p class="tiny muted" id="umTokNote">*Estimated as characters ÷ 4 until the real tokenizer loads (it loads automatically when you reach this box).</p>
         </div>
 
+        <aside class="recap clay" aria-label="Key points to remember">
+          <p class="recap__t">📌 Remember</p>
+          <ul><li><b>Size</b> trades focus for context. Smaller chunks are precise, larger ones carry more surrounding text.</li><li><b>Overlap</b> trades storage for continuity. Each new chunk starts <b>S = C − O</b> units after the last.</li><li>Models count <b>tokens</b>, not words, so production chunkers measure size with the model's tokenizer.</li></ul>
+        </aside>
+        <div class="mcq clay" data-qcheck="size-overlap"></div>
         <div class="section__foot" data-foot="size-overlap"></div>
       </div>
     </section>
@@ -401,7 +420,7 @@
               </div>
             </div>
             <textarea id="labInput" class="input input--doc" rows="10" spellcheck="false" aria-describedby="labDropHint"></textarea>
-            <p class="counts mono small"><span id="labWordCount">0</span> words · <span id="labCharCount">0</span> characters · ≈ <span id="labTokCount">0</span> tokens</p>
+            <p class="counts mono small"><span id="labWordCount">0</span> words · <span id="labCharCount">0</span> characters · <span id="labTokCount">≈ 0</span> tokens</p>
             <p class="tiny muted" id="labDropHint">Type, paste, upload, or drop a <b>.txt .md .pdf .docx .html</b> file here. Your file is read inside your browser and never uploaded anywhere.</p>
             <div class="feedback-box" id="labUploadStatus" aria-live="polite"></div>
             <div class="dropzone__overlay" aria-hidden="true"><span>Drop your document to extract its text</span></div>
@@ -413,16 +432,17 @@
             <div class="ctrl">
               <span class="ctrl__label" id="stratLabel">Strategy</span>
               <div class="seg seg--full" role="radiogroup" aria-labelledby="stratLabel" id="labStrategy">
-                <button role="radio" aria-checked="true" class="seg__btn is-on" data-strategy="fixed">Fixed-size (words)</button>
-                <button role="radio" aria-checked="false" class="seg__btn" data-strategy="sentence">Sentence-based</button>
+                <button role="radio" aria-checked="true" class="seg__btn is-on" data-strategy="fixed">Fixed (words)</button>
+                <button role="radio" aria-checked="false" class="seg__btn" data-strategy="sentence">Sentences</button>
+                <button role="radio" aria-checked="false" class="seg__btn" data-strategy="token" title="Real GPT tokenizer (cl100k_base)">Tokens <small>GPT</small></button>
               </div>
             </div>
             <div class="ctrl">
-              <label for="labSize">Chunk size <b class="mono" id="labSizeVal">20</b> words</label>
+              <label for="labSize">Chunk size <b class="mono" id="labSizeVal">20</b> <span data-lab-unit>words</span></label>
               <input type="range" id="labSize" min="3" max="80" value="20" />
             </div>
             <div class="ctrl">
-              <label for="labOverlap">Overlap <b class="mono" id="labOverlapVal">4</b> words</label>
+              <label for="labOverlap">Overlap <b class="mono" id="labOverlapVal">4</b> <span data-lab-unit>words</span></label>
               <input type="range" id="labOverlap" min="0" max="19" value="4" />
               <p class="tiny muted" id="labOverlapHint">Max overlap = chunk size − 1, so every chunk moves forward.</p>
             </div>
@@ -435,6 +455,10 @@
         <div class="lab__output clay" id="labOutput">
           <div class="panel-head">
             <h3 class="h-sm">3 · Results</h3>
+            <div class="btn-row">
+              <button type="button" class="btn btn--ghost btn--xs" id="labExport" title="Download the chunks as JSON, the format a real pipeline stores">⬇ Export JSON</button>
+              <button type="button" class="btn btn--ghost btn--xs" id="labCodeBtn" aria-expanded="false" aria-controls="labCodeOut">{ } Python code</button>
+            </div>
             <div class="seg seg--sm" role="tablist" aria-label="Result view">
               <button role="tab" aria-selected="true" class="seg__btn is-on" data-view="cards" id="tabCards">Chunk cards</button>
               <button role="tab" aria-selected="false" class="seg__btn" data-view="map" id="tabMap">Original text map</button>
@@ -448,6 +472,13 @@
           <div class="chunk-grid" id="labChunks"></div>
           <div class="text-map" id="labMap" hidden></div>
           <div class="feedback-box" id="labFeedback" aria-live="polite"></div>
+          <div class="code-out" id="labCodeOut" hidden>
+            <div class="code-out__head">
+              <p class="small"><b>Take it to a real project.</b> Python for your current settings. Word and sentence modes are tested chunk-for-chunk against PRISM; token mode uses LangChain's TokenTextSplitter with the same windows.</p>
+              <button type="button" class="btn btn--primary btn--xs" id="labCopy">Copy code</button>
+            </div>
+            <pre class="code"><code id="labCodeText"></code></pre>
+          </div>
         </div>
 
         <!-- Compare -->
@@ -468,6 +499,11 @@
           <div class="feedback-box" id="compareExplain" aria-live="polite"></div>
         </div>
 
+        <aside class="recap clay" aria-label="Key points to remember">
+          <p class="recap__t">📌 Remember</p>
+          <ul><li>Every number in the Lab is computed from real output, so <b>measure, don't guess</b>.</li><li>Watch three signals: <b>chunk count</b>, <b>redundant units</b> and <b>mid-sentence cuts</b>.</li><li>Token mode shows what models really see. A token window can even cut a word in half.</li></ul>
+        </aside>
+        <div class="mcq clay" data-qcheck="lab"></div>
         <div class="section__foot" data-foot="lab"></div>
       </div>
     </section>
@@ -483,9 +519,10 @@
 
         <div class="honest">
           <span class="honest__badge">Teaching simulation</span>
-          <p>This uses <b>simple keyword matching</b> so you can see why each chunk was picked. It does <b>not</b> use real embeddings, a vector database, or a language model. The "answer" is extracted word-for-word from the retrieved chunks.</p>
+          <p>The main simulation uses <b>simple keyword matching</b> so you can see why each chunk was picked. It does <b>not</b> use a vector database or a language model, and the "answer" is extracted word-for-word from the retrieved chunks. Below the results you can optionally load a <b>real embedding model</b> to compare keyword and semantic retrieval.</p>
         </div>
 
+        <div class="mcq clay mcq--predict" data-predict="rag"></div>
         <div class="rag">
           <div class="rag__left">
             <div class="clay rag__source dropzone" id="ragDrop">
@@ -542,6 +579,21 @@
             <div id="ragResult" class="rag-result" aria-live="polite">
               <div class="empty clay clay--beige"><p>Pick a sample question or type your own to start the simulation.</p></div>
             </div>
+
+            <!-- Optional: REAL semantic search with a real embedding model -->
+            <div class="sem clay" id="semPanel">
+              <div class="sem__head">
+                <div>
+                  <p class="label label--coral">Optional · real AI in your browser</p>
+                  <h3 class="h-sm">Keyword vs <em>real</em> semantic search</h3>
+                </div>
+                <button class="btn btn--coral btn--sm" type="button" id="semLoad">Load embedding model · 23 MB</button>
+              </div>
+              <p class="small">Keyword search only finds the exact words you typed. Real RAG turns every chunk into an <b>embedding</b> (a list of 384 numbers that captures meaning) and finds the chunks whose meaning is closest to the question. This loads <b>all-MiniLM-L6-v2</b>, a real open-source embedding model that runs entirely on your device. No server and no API key.</p>
+              <div class="sem__bar" id="semBar" hidden><span></span></div>
+              <div class="chips" id="semSamples" hidden></div>
+              <div id="semResult" aria-live="polite"></div>
+            </div>
           </div>
         </div>
 
@@ -564,6 +616,11 @@
           </div>
         </div>
 
+        <aside class="recap clay" aria-label="Key points to remember">
+          <p class="recap__t">📌 Remember</p>
+          <ul><li>Chunk boundaries decide whether an answer can be retrieved <b>whole</b> or only in fragments.</li><li><b>Keyword</b> retrieval matches exact words; <b>semantic</b> retrieval (embeddings) matches meaning.</li><li>Production RAG = good chunks + embeddings + a vector database + an LLM that cites its sources.</li></ul>
+        </aside>
+        <div class="mcq clay" data-qcheck="rag"></div>
         <div class="section__foot" data-foot="rag"></div>
       </div>
     </section>
@@ -708,10 +765,11 @@ chunks = splitter.split_text(handbook_text)
               <div><span class="big mono" id="cmpChallenge">–</span><span>challenge</span></div>
             </div>
             <p id="completeMsg">Finish the remaining modules to complete PRISM.</p>
-            <p class="tiny" style="color:#BFE0D8;margin-bottom:0"><span data-xp-level>Chunk Rookie · 0 XP</span> · badges <span data-badge-count>0/10</span></p>
+            <p class="tiny" style="color:#BFE0D8;margin-bottom:0"><span data-xp-level>Chunk Rookie · 0 XP</span> · badges <span data-badge-count>0/12</span></p>
             <ul class="badge-shelf" data-badge-shelf aria-label="Badges earned"></ul>
             <div class="btn-row">
               <button class="btn btn--coral" id="finishBtn">Mark lesson complete</button>
+              <button class="btn btn--ghost-light" type="button" data-print-cheatsheet>🖨 Printable cheat sheet</button>
               <a href="#lab" class="btn btn--ghost-light">Back to the Lab</a>
             </div>
           </div>
@@ -720,6 +778,69 @@ chunks = splitter.split_text(handbook_text)
     </section>
   </main>
 
+
+  <!-- ============ PRINTABLE CHEAT SHEET (shown only when printing) ============ -->
+  <section class="cheatsheet" id="cheatsheet" aria-label="Printable cheat sheet">
+    <header class="cs-head">
+      <div><p class="cs-kicker">PRISM · Interactive Chunk Playground</p><h1>Text Chunking for RAG: Cheat Sheet</h1></div>
+      <p class="cs-meta">One page · keep it next to your keyboard</p>
+    </header>
+    <div class="cs-grid">
+      <div class="cs-box cs-wide">
+        <h2>The pipeline</h2>
+        <p class="cs-flow">Document → Extract text → Clean → <b>Chunk</b> → Embed → Store (vector DB) → <i>Question</i> → Retrieve top-k → LLM answer</p>
+        <p>Everything before the question happens <b>once</b> (indexing). Retrieval can only return chunks that exist, so <b>chunk quality limits answer quality</b>.</p>
+      </div>
+      <div class="cs-box">
+        <h2>Key terms</h2>
+        <ul>
+          <li><b>Chunk:</b> a small, self-contained piece of a document.</li>
+          <li><b>Chunk size (C):</b> how much text goes in each chunk.</li>
+          <li><b>Overlap (O):</b> text repeated from the end of one chunk at the start of the next.</li>
+          <li><b>Step:</b> S = C − O. Each new chunk starts S units later.</li>
+          <li><b>Token:</b> the unit models read (≈ ¾ of an English word). Limits are counted in tokens.</li>
+          <li><b>Embedding:</b> numbers that capture meaning, used for semantic search.</li>
+        </ul>
+      </div>
+      <div class="cs-box">
+        <h2>Strategies</h2>
+        <table>
+          <tr><th>Strategy</th><th>Good at</th><th>Watch out for</th></tr>
+          <tr><td>Fixed-size (words/chars)</td><td>Simple, predictable</td><td>Cuts sentences</td></tr>
+          <tr><td>Token-based</td><td>Exact model limits</td><td>Can cut mid-word</td></tr>
+          <tr><td>Sentence / structure-aware</td><td>Keeps meaning whole</td><td>Sizes vary</td></tr>
+        </table>
+        <p class="cs-small">Production splitters usually combine them: count tokens, but cut at paragraph or sentence boundaries.</p>
+      </div>
+      <div class="cs-box">
+        <h2>Choosing settings: checklist</h2>
+        <ol>
+          <li>Look at the document's structure (rules, FAQs, sections, tables).</li>
+          <li>Find your embedding model's token limit and stay well below it.</li>
+          <li>Start moderate, e.g. a few hundred tokens with 10–20% overlap.</li>
+          <li>Test with <b>real questions</b>: is the answer retrieved <b>whole</b>?</li>
+          <li>Adjust, re-test, and keep notes. There is no universal best.</li>
+        </ol>
+      </div>
+      <div class="cs-box">
+        <h2>Symptoms → fixes</h2>
+        <ul>
+          <li><b>Answers come back in fragments</b> → larger or sentence-aware chunks, or add overlap.</li>
+          <li><b>Retrieved text is mostly irrelevant</b> → smaller chunks.</li>
+          <li><b>Near-duplicate results</b> → reduce overlap.</li>
+          <li><b>Right meaning, different words missed</b> → embeddings, not keywords.</li>
+          <li><b>Garbage text (page numbers, broken words)</b> → fix extraction and cleaning first.</li>
+        </ul>
+      </div>
+      <div class="cs-box cs-wide">
+        <h2>In code (Python, LangChain)</h2>
+<pre>from langchain_text_splitters import RecursiveCharacterTextSplitter, TokenTextSplitter
+splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)  # characters, structure-aware
+token_splitter = TokenTextSplitter(encoding_name="cl100k_base", chunk_size=256, chunk_overlap=32)
+chunks = splitter.split_text(text)</pre>
+      </div>
+    </div>
+  </section>
   <footer class="footer">
     <div class="container footer__inner">
       <span class="brand__name">PRI<b>SM</b></span>
@@ -731,13 +852,16 @@ chunks = splitter.split_text(handbook_text)
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="badge-pop" id="badgePop" role="status" aria-live="polite"></div>
 
-  <script src="js/content.js?v=9"></script>
-  <script src="js/chunking.js?v=9"></script>
-  <script src="js/retrieval.js?v=9"></script>
-  <script src="js/docloader.js?v=9"></script>
-  <script src="js/progress.js?v=9"></script>
-  <script src="js/quiz.js?v=9"></script>
-  <script src="js/fun.js?v=9"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/content.js?v=12"></script>
+  <script src="js/chunking.js?v=12"></script>
+  <script src="js/retrieval.js?v=12"></script>
+  <script src="js/docloader.js?v=12"></script>
+  <script src="js/tokenizer.js?v=12"></script>
+  <script src="js/semantic.js?v=12"></script>
+  <script src="js/learn.js?v=12"></script>
+  <script src="js/progress.js?v=12"></script>
+  <script src="js/quiz.js?v=12"></script>
+  <script src="js/fun.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
 </body>
 </html>

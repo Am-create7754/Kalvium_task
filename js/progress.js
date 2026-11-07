@@ -180,10 +180,38 @@
     listeners.forEach((f) => f('render'));
   }
 
+  // ---------- "Welcome back" resume prompt ----------
+  function resume() {
+    const n = state.done.length;
+    if (!n || n === SECTIONS.length) return;
+    const next = SECTIONS.find((s) => !isDone(s.id));
+    const el = document.createElement('div');
+    el.className = 'resume';
+    el.setAttribute('role', 'status');
+    el.innerHTML = '<span class="resume__ic" aria-hidden="true">👋</span><span><b>Welcome back!</b> ' + n + ' of ' + SECTIONS.length +
+      ' modules done. Next: <b>' + next.title + '</b></span>' +
+      '<a class="btn btn--primary btn--xs" href="#' + next.id + '">Continue →</a><button class="icon-btn resume__x" type="button" aria-label="Dismiss">✕</button>';
+    document.body.appendChild(el);
+    const close = () => { el.classList.add('is-out'); setTimeout(() => el.remove(), 300); };
+    el.querySelector('a').addEventListener('click', close);
+    el.querySelector('.resume__x').addEventListener('click', close);
+    setTimeout(() => { if (document.body.contains(el)) close(); }, 14000);
+  }
+
+  // ---------- Printable cheat sheet ----------
+  function printing() {
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('[data-print-cheatsheet]')) return;
+      document.documentElement.classList.add('print-cheatsheet');
+      window.print();
+    });
+    window.addEventListener('afterprint', () => document.documentElement.classList.remove('print-cheatsheet'));
+  }
+
   window.Progress = {
     SECTIONS: SECTIONS, TOTAL: TOTAL,
     isDone: isDone, markDone: markDone, setMeta: setMeta, getMeta: getMeta,
     reset: reset, onChange: onChange, toast: toast,
-    init: function () { build(); render(); }
+    init: function () { build(); render(); resume(); printing(); }
   };
 })();
