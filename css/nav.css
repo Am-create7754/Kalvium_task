@@ -1,0 +1,69 @@
+/* =====================================================================
+   PRISM — Top navigation (high-visibility module rail)
+   ===================================================================== */
+.topbar { background: rgba(245, 240, 230, .96); box-shadow: 0 1px 0 var(--line), 0 6px 20px -14px rgba(38, 59, 56, .35); }
+.topbar__inner { height: 68px; }
+:root { --nav-h: 68px; }
+
+/* The rail: a clear white pill that holds the modules */
+.topnav { display: flex; justify-content: center; overflow: visible; }
+.topnav__list {
+  display: inline-flex; gap: 2px; padding: 4px; background: var(--white); border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(38, 59, 56, .14), 0 4px 14px -8px rgba(38, 59, 56, .3);
+  overflow-x: auto; scrollbar-width: none; max-width: 100%;
+}
+.topnav__list::-webkit-scrollbar { display: none; }
+.topnav__link {
+  gap: .45rem; padding: .42rem .75rem .42rem .42rem; border-radius: 999px;
+  font: 600 .86rem/1 var(--f-body); color: var(--forest); transition: background .18s, color .18s, transform .18s;
+}
+.topnav__link:hover { background: var(--teal-50); color: var(--teal); }
+.topnav__n {
+  width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0;
+  font: 700 .72rem/1 var(--f-mono); color: var(--teal); background: var(--teal-50); box-shadow: inset 0 0 0 1.5px rgba(22, 78, 70, .25);
+}
+.topnav__link.is-done .topnav__n { background: var(--teal); color: transparent; box-shadow: none; position: relative; }
+.topnav__link.is-done .topnav__n::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: .72rem; }
+.topnav__link.is-active { background: var(--teal); color: #fff; box-shadow: 0 6px 14px -6px rgba(22, 78, 70, .6); }
+.topnav__link.is-active .topnav__n { background: #fff; color: var(--teal); box-shadow: none; }
+.topnav__link.is-active.is-done .topnav__n { background: var(--coral); }
+.topnav__link.is-active.is-done .topnav__n::after { color: var(--ink-on-coral); }
+.topnav__link:focus-visible { box-shadow: var(--focus) !important; }
+
+/* Phones: "where am I" chip */
+.nowchip { display: none; }
+
+/* Mid laptops: tighter, still labelled */
+@media (max-width: 1440px) {
+  .topnav__link { padding: .4rem .6rem .4rem .38rem; font-size: .8rem; gap: .35rem; }
+  .topnav__n { width: 20px; height: 20px; font-size: .68rem; }
+}
+/* Small laptops & tablets: numbers only, the active module keeps its name */
+@media (max-width: 1240px) {
+  .topnav { display: flex !important; }
+  .topnav__link:not(.is-active) .topnav__t { display: none; }
+  .topnav__link:not(.is-active) { padding: .32rem; }
+  .topnav__link { font-size: .82rem; }
+  .topnav__n { width: 26px; height: 26px; font-size: .74rem; }
+}
+/* Phones: replace the rail with the chip */
+@media (max-width: 720px) {
+  .topnav { display: none !important; }
+  .nowchip {
+    display: inline-flex; align-items: center; gap: .45rem; margin: 0 auto; min-width: 0;
+    border: 0; cursor: pointer; background: var(--teal); color: #fff; border-radius: 999px;
+    padding: .38rem .7rem .38rem .38rem; font: 600 .84rem/1 var(--f-body); box-shadow: 0 6px 14px -6px rgba(22, 78, 70, .6);
+  }
+  .nowchip__n { width: 22px; height: 22px; border-radius: 50%; background: #fff; color: var(--teal); display: inline-grid; place-items: center; font: 700 .72rem/1 var(--f-mono); flex-shrink: 0; }
+  .nowchip.is-done .nowchip__n { background: var(--coral); color: var(--ink-on-coral); }
+  .nowchip__t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
+  .nowchip__caret { font-size: .7rem; opacity: .8; }
+  .brand__name { display: none; }
+}
+
+/* Tablets: make room so all 9 numbered steps stay visible */
+@media (max-width: 960px) and (min-width: 721px) {
+  .brand__sub, .progress-pill .hide-sm, #mapToggle span { display: none; }
+  .topbar__inner { gap: 10px; }
+  .topnav__n { width: 24px; height: 24px; }
+}

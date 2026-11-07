@@ -171,7 +171,8 @@ Word-based modes are a teaching simplification. Production systems measure chunk
 │   ├── components.css      # Buttons, controls, lab, RAG, quiz, cards…
 │   ├── responsive.css      # Tablet / phone / mid-laptop breakpoints
 │   ├── fun.css             # Play-layer styles and animations
-│   └── pager.css           # Page transitions, edge arrows, page counter
+│   ├── pager.css           # Page transitions, edge arrows, page counter
+│   └── nav.css             # High-visibility module rail + phone "where am I" chip
 ├── js/
 │   ├── content.js          # Sample texts: lab sample, handbook, challenge doc + tests
 │   ├── chunking.js         # Chunking engine (pure functions, Node + browser)

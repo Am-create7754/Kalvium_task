@@ -65,9 +65,19 @@
 
   // ---------- Build static navigation once ----------
   function build() {
-    $('#topnavList').innerHTML = SECTIONS.map((s) =>
-      '<li><a class="topnav__link" href="#' + s.id + '" data-nav="' + s.id + '"><span class="tick" aria-hidden="true">✓</span>' + s.short + '</a></li>'
+    $('#topnavList').innerHTML = SECTIONS.map((s, i) =>
+      '<li><a class="topnav__link" href="#' + s.id + '" data-nav="' + s.id + '" title="' + (i + 1) + '. ' + s.title + ' · ' + s.min + ' min">' +
+        '<span class="topnav__n" aria-hidden="true">' + (i + 1) + '</span><span class="topnav__t">' + s.short + '</span></a></li>'
     ).join('');
+    // Phones: one clear "where am I" chip that opens the lesson map
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'nowchip';
+    chip.id = 'nowChip';
+    chip.setAttribute('aria-label', 'Current module, open lesson map');
+    chip.innerHTML = '<span class="nowchip__n">★</span><span class="nowchip__t">Start</span><span aria-hidden="true" class="nowchip__caret">▾</span>';
+    $('.topbar__inner').insertBefore(chip, $('.topbar__actions'));
+    chip.addEventListener('click', () => $('#mapToggle').click());
 
     $('#mapList').innerHTML = SECTIONS.map((s, i) =>
       '<li><a class="map-item" href="#' + s.id + '" data-nav="' + s.id + '">' +
@@ -138,6 +148,13 @@
       a.classList.toggle('is-active', on);
       if (on) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current');
     });
+    const idx = SECTIONS.findIndex((s) => s.id === id);
+    const chip = $('#nowChip');
+    if (chip) {
+      $('.nowchip__n', chip).textContent = idx >= 0 ? String(idx + 1) : '★';
+      $('.nowchip__t', chip).textContent = idx >= 0 ? SECTIONS[idx].short : 'Start';
+      chip.classList.toggle('is-done', idx >= 0 && isDone(id));
+    }
     const link = $('.topnav [data-nav="' + id + '"]');
     if (link && link.scrollIntoView && window.innerWidth > 1180) {
       const nav = $('.topnav');
