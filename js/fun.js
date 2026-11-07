@@ -378,7 +378,7 @@
       }
       case 'semantic-ready': mascot('cheer', 'A real AI model is running on your device! 🧭', true); break;
       case 'semantic-compare':
-        award('semantic', $('#semPanel'));
+        award('semantic', $('#semSlot'));
         if (d.differ) mascot('shock', 'See? Keyword and meaning disagree! 👀');
         break;
       case 'quiz-answer':

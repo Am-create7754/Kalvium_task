@@ -739,29 +739,32 @@
     'Can I change my subjects after the semester starts?',
     'What should I bring to the exam hall?'
   ];
+  /** Load the embedding model; progress is shown on whichever button was pressed. */
+  function loadSemantic(btn) {
+    if (Semantic.ready()) return Promise.resolve();
+    $$('[data-sem-load]').forEach((b) => { b.disabled = true; });
+    if (btn) btn.textContent = 'Loading model…';
+    return Semantic.load((pct) => { $$('[data-sem-load]').forEach((b) => { b.textContent = 'Downloading model… ' + pct + '%'; }); })
+      .then(() => {
+        $('#semSamples').hidden = false;
+        $('#semSamples').innerHTML = '<span class="chips__label">Real model loaded ✓ Now try wording that is not in the handbook:</span>' +
+          PARAPHRASES.map((q) => '<button type="button" class="chip chip--sem" data-sq="' + esc(q) + '">' + esc(q) + '</button>').join('');
+        emit('semantic-ready', { anchor: btn });
+      })
+      .catch((err) => {
+        $$('[data-sem-load]').forEach((b) => { b.disabled = false; b.textContent = 'Retry loading the model'; });
+        const slot = $('#semSlot');
+        if (slot) slot.insertAdjacentHTML('beforeend', '<div class="fb fb--warn"><div>Could not load the model (' + esc(err.message || 'network error') + '). It needs an internet connection the first time. Everything else in PRISM keeps working.</div></div>');
+        throw err;
+      });
+  }
+
   function initSemantic() {
-    const btn = $('#semLoad');
-    btn.addEventListener('click', () => {
-      btn.disabled = true;
-      btn.textContent = 'Loading model…';
-      $('#semBar').hidden = false;
-      Semantic.load((pct) => { $('#semBar span').style.width = pct + '%'; btn.textContent = 'Downloading… ' + pct + '%'; })
-        .then(() => {
-          btn.textContent = 'Model ready ✓';
-          $('#semBar').hidden = true;
-          $('#semSamples').hidden = false;
-          $('#semSamples').innerHTML = '<span class="chips__label">Try questions worded differently from the handbook:</span>' +
-            PARAPHRASES.map((q) => '<button type="button" class="chip" data-sq="' + esc(q) + '">' + esc(q) + '</button>').join('');
-          emit('semantic-ready', { anchor: btn });
-          if (rag.query) ask(rag.query);
-          else $('#semResult').innerHTML = '<div class="fb fb--good"><div>Model loaded. Ask any question above, and both rankings will appear here.</div></div>';
-        })
-        .catch((err) => {
-          btn.disabled = false;
-          btn.textContent = 'Retry loading model';
-          $('#semBar').hidden = true;
-          $('#semResult').innerHTML = '<div class="fb fb--warn"><div>Could not load the model (' + esc(err.message || 'network error') + '). It needs an internet connection the first time. Everything else in PRISM keeps working.</div></div>';
-        });
+    // The load button lives inside step 5 of each answer, so use delegation.
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-sem-load]');
+      if (!b) return;
+      loadSemantic(b).then(() => { if (rag.query) ask(rag.query); }).catch(() => {});
     });
     $('#semSamples').addEventListener('click', (e) => {
       const c = e.target.closest('[data-sq]');
@@ -769,39 +772,53 @@
       if (rag.src !== 'sample') ragSrcSeg.select('sample');
       $('#ragQuery').value = c.dataset.sq;
       ask(c.dataset.sq);
-      $('#ragForm').scrollIntoView({ behavior: isCalm() ? 'auto' : 'smooth', block: 'start' });
     });
   }
 
-  /** Rank the SAME chunks by meaning and show it next to the keyword ranking. */
+  /** Step 5 placeholder: a load button, or a "working…" note when the model is ready. */
+  function semanticStepBody() {
+    if (window.Semantic && Semantic.ready()) return '<div id="semSlot"><p class="small muted">Embedding the chunks and your question…</p></div>';
+    return '<div id="semSlot"><p class="small">Keyword search only matches the exact words you typed. Real RAG compares <b>meaning</b>: every chunk becomes an <b>embedding</b> (384 numbers), and the closest ones are retrieved. Load <b>all-MiniLM-L6-v2</b>, a real open-source model that runs entirely on your device (no server, no API key), and this step will answer the same question by meaning.</p>' +
+      '<button type="button" class="btn btn--coral btn--sm" data-sem-load>⚡ Load real embedding model · 23 MB</button></div>';
+  }
+
+  /** Fill step 5: semantic answer + keyword vs semantic rankings on the SAME chunks. */
   async function runSemantic(q, out, r) {
     if (!window.Semantic || !Semantic.ready() || !out.chunks.length) return;
     const id = ++semRun;
-    const box = $('#semResult');
-    box.innerHTML = '<p class="small muted">Embedding ' + Math.min(out.chunks.length, Semantic.MAX_CHUNKS) + ' chunks and your question…</p>';
-    let sem;
-    try { sem = await Semantic.search(q, out.chunks, 3); } catch (e) { box.innerHTML = '<div class="fb fb--warn"><div>Embedding failed: ' + esc(e.message) + '</div></div>'; return; }
-    if (id !== semRun) return;                       // a newer question was asked meanwhile
+    let sem, best;
+    try {
+      sem = await Semantic.search(q, out.chunks, 3);
+      const top = sem[0].chunk;
+      const sentences = E.toSentences(top.words).map((s) => top.words.slice(s.start, s.end).join(' ')).filter((t) => t.split(' ').length > 2);
+      best = await Semantic.bestSentences(q, sentences.length ? sentences : [top.text]);
+    } catch (e) {
+      const slot = $('#semSlot');
+      if (slot && id === semRun) slot.innerHTML = '<div class="fb fb--warn"><div>Embedding failed: ' + esc(e.message) + '</div></div>';
+      return;
+    }
+    const slot = $('#semSlot');
+    if (id !== semRun || !slot) return;               // a newer question was asked meanwhile
     const kwTop = r.results.map((x) => x.chunk.index);
     const semTop = sem.map((x) => x.chunk.index);
-    const col = (title, sub, items) => '<div class="sem__col"><h4>' + title + '</h4><p class="tiny muted">' + sub + '</p>' +
-      (items.length ? items.join('') : '<div class="fb fb--warn"><div>No chunk shares a keyword with the question.</div></div>') + '</div>';
     const item = (c, scoreTxt, pct, both) => '<div class="sem__item' + (both ? ' is-both' : '') + '"><div class="ret-card__head"><span class="chunk-card__n">Chunk ' + (c.index + 1) + '</span>' +
       '<span class="ret-card__score">' + scoreTxt + ' <i style="--s:' + pct + '%"></i></span></div><div class="ret-card__txt">' + esc(c.text) + '</div></div>';
+    const col = (title, sub, items) => '<div class="sem__col"><h5>' + title + '</h5><p class="tiny muted">' + sub + '</p>' +
+      (items.length ? items.join('') : '<div class="fb fb--warn"><div>No chunk shares a keyword with the question.</div></div>') + '</div>';
     const kwMax = r.results[0] ? r.results[0].score : 1;
     const kwItems = r.results.map((x) => item(x.chunk, 'score ' + x.score.toFixed(2), Math.round((x.score / kwMax) * 100), semTop.includes(x.chunk.index)));
     const semItems = sem.map((x) => item(x.chunk, 'similarity ' + x.score.toFixed(2), Math.max(4, Math.round(x.score * 100)), kwTop.includes(x.chunk.index)));
     let verdict;
-    if (!kwTop.length) verdict = '<b>Keyword search found nothing</b>: none of your words appear in the document. Semantic search still ranked chunks by <b>meaning</b>, which is why production RAG uses embeddings.';
+    if (!kwTop.length) verdict = '<b>Keyword search found nothing</b> because none of your words appear in the document, but semantic search still found the closest <b>meaning</b>. This is why production RAG uses embeddings.';
     else if (kwTop[0] === semTop[0]) verdict = '<b>Both methods agree on the top chunk.</b> When a question uses the same words as the document, keyword search works well too.';
-    else verdict = '<b>The rankings differ.</b> Keyword search rewards exact word matches; semantic search rewards similar meaning, even with different words (for example "handing in homework late" ↔ "late submissions… penalty").';
-    box.innerHTML = '<div class="fb"><div>' + verdict + ' Chunks found by <b>both</b> are outlined.</div></div>' +
-      '<div class="sem__grid">' +
-        col('Keyword (TF-IDF)', 'Counts shared words', kwItems) +
-        col('Semantic (embeddings)', 'Cosine similarity of meaning, from −1 to 1', semItems) +
-      '</div>' +
-      (out.chunks.length > Semantic.MAX_CHUNKS ? '<p class="tiny muted">Searched the first ' + Semantic.MAX_CHUNKS + ' chunks.</p>' : '') +
-      '<p class="tiny muted">Same chunks, same question, two retrieval methods. Change the chunk size on the left and ask again: chunking changes what <i>both</i> methods can find.</p>';
+    else verdict = '<b>The two methods disagree.</b> Keyword search rewards exact word matches, while semantic search rewards similar meaning, even with different words. Compare the answers above and below.';
+    slot.innerHTML =
+      '<div class="answer answer--sem"><span class="answer__tag">Semantic answer · best similarity ' + Math.max.apply(null, best.map((b) => b.score)).toFixed(2) + '</span>' + best.map((b) => '<q>' + esc(b.text) + '</q>').join(' ') +
+        '<span class="tiny">The sentence' + (best.length > 1 ? 's' : '') + ' from the best chunk (chunk ' + (sem[0].chunk.index + 1) + ') whose embedding' + (best.length > 1 ? 's are' : ' is') + ' closest to your question. ' + (best.length > 1 ? 'Two are shown because their scores are close. ' : '') + 'They are still extracted word-for-word, with no language model.</span></div>' +
+      '<div class="fb sem__verdict"><div>' + verdict + ' Chunks found by <b>both</b> methods are outlined.</div></div>' +
+      '<details class="sem__details"' + (kwTop[0] !== semTop[0] ? ' open' : '') + '><summary>Compare the top 3 chunks: keyword vs semantic</summary>' +
+        '<div class="sem__grid">' + col('Keyword (TF-IDF)', 'Counts shared words', kwItems) + col('Semantic (embeddings)', 'Cosine similarity of meaning, −1 to 1', semItems) + '</div></details>' +
+      (out.chunks.length > Semantic.MAX_CHUNKS ? '<p class="tiny muted">Searched the first ' + Semantic.MAX_CHUNKS + ' chunks.</p>' : '');
     emit('semantic-compare', { differ: kwTop[0] !== semTop[0] });
   }
 
@@ -917,6 +934,9 @@
         : 'No sentence in the retrieved chunks matched.';
       steps.push({ t: 'Illustrative answer', b: '<div class="answer">' + ans + '<span class="tiny">Extracted word-for-word from the retrieved chunks — no language model wrote this. A real RAG app would pass these chunks to an LLM, which would write a fluent answer grounded in them.</span></div>' });
     }
+    if (out.chunks.length) {
+      steps.push({ t: 'Same question, real semantic search', b: semanticStepBody(), sem: true });
+    }
 
     let frag = '';
     if (r.fragmentation && r.results.length) {
@@ -929,7 +949,7 @@
     }
 
     box.innerHTML = '<ol class="rs-list">' + steps.map((s, i) =>
-      '<li class="rs" style="--i:' + i + '"><span class="rs__n">' + (i + 1) + '</span><div class="rs__body"><h4>' + s.t + '</h4>' + s.b + '</div></li>'
+      '<li class="rs' + (s.sem ? ' rs--sem' : '') + '" style="--i:' + i + '"><span class="rs__n">' + (i + 1) + '</span><div class="rs__body"><h4>' + s.t + '</h4>' + s.b + '</div></li>'
     ).join('') + '</ol>' + frag;
     if (P) P.markDone('rag', P.isDone('rag'));
     runSemantic(q, out, r);

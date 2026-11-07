@@ -62,5 +62,29 @@
       .slice(0, k || 3);
   }
 
-  root.Semantic = { load: load, ready: () => !!extractor, search: search, MODEL: MODEL, MAX_CHUNKS: MAX_CHUNKS };
+  /** The sentence (from a list) whose meaning is closest to the query. */
+  async function bestSentence(query, sentences) {
+    if (!sentences.length) return null;
+    const [q] = await embed([query]);
+    const vecs = await embed(sentences);
+    let best = 0;
+    vecs.forEach((v, i) => { if (cosine(q, v) > cosine(q, vecs[best])) best = i; });
+    return { text: sentences[best], score: cosine(q, vecs[best]) };
+  }
+
+  /**
+   * Top sentences by meaning: the best one, plus the runner-up when it scores
+   * at least 80% of the best (like a retriever passing the closest passages).
+   * Returned in document order.
+   */
+  async function bestSentences(query, sentences) {
+    if (!sentences.length) return [];
+    const [q] = await embed([query]);
+    const vecs = await embed(sentences);
+    const ranked = sentences.map((t, i) => ({ text: t, i: i, score: cosine(q, vecs[i]) })).sort((x, y) => y.score - x.score);
+    const keep = ranked.slice(0, 2).filter((x, k) => k === 0 || (x.score >= ranked[0].score * 0.8 && x.score >= 0.3));
+    return keep.sort((x, y) => x.i - y.i);
+  }
+
+  root.Semantic = { load: load, ready: () => !!extractor, search: search, bestSentence: bestSentence, bestSentences: bestSentences, MODEL: MODEL, MAX_CHUNKS: MAX_CHUNKS };
 })(window);

@@ -103,7 +103,7 @@ By the end, learners can:
 
 ### Real semantic search (`js/semantic.js`, optional)
 - One click loads **all-MiniLM-L6-v2** (a quantised sentence-embedding model, ~23 MB) with transformers.js. It runs fully on the learner's device, with no server and no API key.
-- Every question is answered twice from the **same chunks**: keyword TF-IDF on one side, cosine similarity of 384-dimension embeddings on the other.
+- It appears as **step 5 of every Ask answer**: the same question answered by meaning (the sentence whose embedding is closest), with keyword TF-IDF vs cosine similarity of 384-dimension embeddings compared on the **same chunks**.
 - Suggested paraphrases show where meaning beats words. For example, "Is there a penalty for handing in homework after the due date?": keyword search retrieves the library-fine chunk, while semantic search retrieves the late-submission rule.
 
 ### From playground to project

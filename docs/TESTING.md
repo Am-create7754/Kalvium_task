@@ -53,7 +53,7 @@ Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 |---|---|---|---|
 | 43 | Real tokenizer | Size & Overlap meter loads cl100k_base on scroll; "condonation" splits into several tokens | ✅ |
 | 44 | Token chunking | Lab → Tokens · GPT: 156 tokens for the 133-word sample, exact windows, token pills, mid-word cut counter, Token Tamer badge | ✅ |
-| 45 | Real semantic search | Load model (~7 s on broadband); 4 paraphrase questions; keyword vs semantic columns; "homework penalty" retrieves the late-submission rule semantically | ✅ |
+| 45 | Real semantic search | Step 5 of every Ask answer: load the model (~7 s on broadband) from there, then a semantic answer appears inside the result (top sentence, plus the runner-up when its score is close) with a keyword-vs-semantic comparison. All 4 paraphrases, the attendance question and a custom document answer correctly | ✅ |
 | 46 | Predict → check | 3 predictions; answers computed by the engine (e.g. 24→12 words: 6 → 11 chunks) | ✅ |
 | 47 | Quick checks + recaps | 5 modules end with a Remember card and a question; feedback and +5 XP on first correct answer | ✅ |
 | 48 | Glossary | First mention of 9 terms gets a definition on hover, focus or tap | ✅ |

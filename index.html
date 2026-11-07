@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRISM — Interactive Chunk Playground</title>
   <meta name="description" content="PRISM is an interactive chunk playground: a 45-minute lesson that teaches beginners how text chunking and document processing power Retrieval-Augmented Generation (RAG)." />
-  <link rel="icon" href="assets/images/favicon.svg?v=12" type="image/svg+xml" />
+  <link rel="icon" href="assets/images/favicon.svg?v=14" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=12" />
-  <link rel="stylesheet" href="css/components.css?v=12" />
-  <link rel="stylesheet" href="css/responsive.css?v=12" />
-  <link rel="stylesheet" href="css/fun.css?v=12" />
+  <link rel="stylesheet" href="css/style.css?v=14" />
+  <link rel="stylesheet" href="css/components.css?v=14" />
+  <link rel="stylesheet" href="css/responsive.css?v=14" />
+  <link rel="stylesheet" href="css/fun.css?v=14" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to lesson</a>
@@ -519,7 +519,7 @@
 
         <div class="honest">
           <span class="honest__badge">Teaching simulation</span>
-          <p>The main simulation uses <b>simple keyword matching</b> so you can see why each chunk was picked. It does <b>not</b> use a vector database or a language model, and the "answer" is extracted word-for-word from the retrieved chunks. Below the results you can optionally load a <b>real embedding model</b> to compare keyword and semantic retrieval.</p>
+          <p>The main simulation uses <b>simple keyword matching</b> so you can see why each chunk was picked. It does <b>not</b> use a vector database or a language model, and the "answer" is extracted word-for-word from the retrieved chunks. In step 5 of every answer you can load a <b>real embedding model</b> and see the same question answered by meaning.</p>
         </div>
 
         <div class="mcq clay mcq--predict" data-predict="rag"></div>
@@ -575,24 +575,10 @@
                 <button class="btn btn--primary" type="submit">Ask</button>
               </div>
               <div class="chips" id="ragSamples"></div>
+              <div class="chips" id="semSamples" hidden></div>
             </form>
             <div id="ragResult" class="rag-result" aria-live="polite">
               <div class="empty clay clay--beige"><p>Pick a sample question or type your own to start the simulation.</p></div>
-            </div>
-
-            <!-- Optional: REAL semantic search with a real embedding model -->
-            <div class="sem clay" id="semPanel">
-              <div class="sem__head">
-                <div>
-                  <p class="label label--coral">Optional · real AI in your browser</p>
-                  <h3 class="h-sm">Keyword vs <em>real</em> semantic search</h3>
-                </div>
-                <button class="btn btn--coral btn--sm" type="button" id="semLoad">Load embedding model · 23 MB</button>
-              </div>
-              <p class="small">Keyword search only finds the exact words you typed. Real RAG turns every chunk into an <b>embedding</b> (a list of 384 numbers that captures meaning) and finds the chunks whose meaning is closest to the question. This loads <b>all-MiniLM-L6-v2</b>, a real open-source embedding model that runs entirely on your device. No server and no API key.</p>
-              <div class="sem__bar" id="semBar" hidden><span></span></div>
-              <div class="chips" id="semSamples" hidden></div>
-              <div id="semResult" aria-live="polite"></div>
             </div>
           </div>
         </div>
@@ -852,16 +838,16 @@ chunks = splitter.split_text(text)</pre>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="badge-pop" id="badgePop" role="status" aria-live="polite"></div>
 
-  <script src="js/content.js?v=12"></script>
-  <script src="js/chunking.js?v=12"></script>
-  <script src="js/retrieval.js?v=12"></script>
-  <script src="js/docloader.js?v=12"></script>
-  <script src="js/tokenizer.js?v=12"></script>
-  <script src="js/semantic.js?v=12"></script>
-  <script src="js/learn.js?v=12"></script>
-  <script src="js/progress.js?v=12"></script>
-  <script src="js/quiz.js?v=12"></script>
-  <script src="js/fun.js?v=12"></script>
-  <script src="js/app.js?v=12"></script>
+  <script src="js/content.js?v=14"></script>
+  <script src="js/chunking.js?v=14"></script>
+  <script src="js/retrieval.js?v=14"></script>
+  <script src="js/docloader.js?v=14"></script>
+  <script src="js/tokenizer.js?v=14"></script>
+  <script src="js/semantic.js?v=14"></script>
+  <script src="js/learn.js?v=14"></script>
+  <script src="js/progress.js?v=14"></script>
+  <script src="js/quiz.js?v=14"></script>
+  <script src="js/fun.js?v=14"></script>
+  <script src="js/app.js?v=14"></script>
 </body>
 </html>
