@@ -111,11 +111,8 @@ By the end, learners can:
 - **Fragmentation check:** detects when the best-matching sentence is split across chunks and explains why.
 
 ### UI
-- **"Light through a prism" design (`css/theme.css`).** A document is white light, and chunking splits it into colours. Each module owns one colour of the spectrum (red → pink), so the learner literally travels through the spectrum. That colour drives the section label, sliders, highlights and the 45-minute timeline.
-- **Hero illustration (inline SVG):** a beam leaves a document, passes through a glass prism and fans out into coloured chunk cards, which explains the whole lesson in one picture.
-- **Rainbow chunks:** chunk cards cycle through the spectrum, so neighbouring chunks are easy to tell apart.
-- **Learning first:** calm near-white reading surfaces, dark ink (15.9:1 contrast), 17px body text and short line lengths. Colour guides attention and is never used for body text.
-- Bricolage Grotesque (headings) / Inter (body) / JetBrains Mono (labels and code).
+- Claymorphism + minimal editorial design system using the brief's palette (Warm Ivory, Deep Teal, Coral, Dark Forest).
+- Manrope / Inter / JetBrains Mono.
 - Responsive across desktop, tablet and phone. Keyboard-friendly segmented controls and quiz (arrow keys). Visible focus rings, a skip link, `aria-live` feedback, and `prefers-reduced-motion` support.
 
 ---
