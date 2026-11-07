@@ -69,7 +69,7 @@
 
   // ---------------- confetti (canvas, palette colours) ----------------
   let canvas, ctx, parts = [], raf = 0;
-  const COLORS = ['#164E46', '#F07858', '#F7B9A6', '#8FC1B5', '#EAE4D8', '#FFD3A8'];
+  const COLORS = ['#FF5D73', '#FF9A3C', '#F5B700', '#2BC48A', '#1FB5C9', '#4C7DFF', '#9B6BFF', '#FF5DB1'];
   function ensureCanvas() {
     if (canvas) return;
     canvas = document.createElement('canvas');

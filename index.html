@@ -8,11 +8,13 @@
   <link rel="icon" href="assets/images/favicon.svg?v=7" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css?v=7" />
   <link rel="stylesheet" href="css/components.css?v=7" />
   <link rel="stylesheet" href="css/responsive.css?v=7" />
   <link rel="stylesheet" href="css/fun.css?v=7" />
+  <link rel="stylesheet" href="css/theme.css?v=8" />
+  <meta name="theme-color" content="#FAF9F6" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to lesson</a>
@@ -89,22 +91,109 @@
           </div>
         </div>
 
-        <!-- Document → chunks visual (pure CSS) -->
+        <!-- Hero: one document → a prism → a spectrum of chunks -->
         <div class="hero__visual" aria-hidden="true">
-          <div class="doc-stack clay">
-            <div class="doc-stack__head"><span class="file-ic"></span>student_handbook.pdf <em>200 pages</em></div>
-            <div class="doc-lines">
-              <i style="--w:92%"></i><i style="--w:78%"></i><i style="--w:86%"></i><i style="--w:64%" class="hl"></i>
-              <i style="--w:90%"></i><i style="--w:72%"></i><i style="--w:82%"></i><i style="--w:58%"></i>
-            </div>
-          </div>
-          <div class="hero__arrow"><span>chunk</span></div>
-          <div class="chunk-fan">
-            <div class="mini-chunk clay"><b>#1</b><i style="--w:90%"></i><i style="--w:70%"></i></div>
-            <div class="mini-chunk clay"><b>#2</b><i style="--w:80%"></i><i style="--w:60%"></i></div>
-            <div class="mini-chunk clay is-hit"><b>#3</b><i style="--w:88%"></i><i style="--w:66%"></i><span class="hit-tag">match</span></div>
-            <div class="mini-chunk clay"><b>#4</b><i style="--w:76%"></i><i style="--w:52%"></i></div>
-          </div>
+          <svg class="prism-scene" viewBox="0 0 580 450" role="presentation">
+            <defs>
+              <linearGradient id="pgBeam" x1="0" x2="1">
+                <stop offset="0" stop-color="#C9C4EC" stop-opacity=".25"/>
+                <stop offset="1" stop-color="#8F86E0" stop-opacity=".9"/>
+              </linearGradient>
+              <linearGradient id="pgGlass" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/>
+                <stop offset=".55" stop-color="#EEEBFF" stop-opacity=".85"/>
+                <stop offset="1" stop-color="#D9D3FF" stop-opacity=".9"/>
+              </linearGradient>
+              <linearGradient id="pgEdge" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FF5D73"/><stop offset=".35" stop-color="#F5B700"/>
+                <stop offset=".65" stop-color="#2BC48A"/><stop offset="1" stop-color="#7B61FF"/>
+              </linearGradient>
+              <linearGradient id="pgR1" x1="0" x2="1"><stop offset="0" stop-color="#FF5D73" stop-opacity=".95"/><stop offset="1" stop-color="#FF5D73" stop-opacity=".18"/></linearGradient>
+              <linearGradient id="pgR2" x1="0" x2="1"><stop offset="0" stop-color="#FF9A3C" stop-opacity=".95"/><stop offset="1" stop-color="#FF9A3C" stop-opacity=".18"/></linearGradient>
+              <linearGradient id="pgR3" x1="0" x2="1"><stop offset="0" stop-color="#2BC48A" stop-opacity=".95"/><stop offset="1" stop-color="#2BC48A" stop-opacity=".18"/></linearGradient>
+              <linearGradient id="pgR4" x1="0" x2="1"><stop offset="0" stop-color="#4C7DFF" stop-opacity=".95"/><stop offset="1" stop-color="#4C7DFF" stop-opacity=".18"/></linearGradient>
+              <linearGradient id="pgR5" x1="0" x2="1"><stop offset="0" stop-color="#9B6BFF" stop-opacity=".95"/><stop offset="1" stop-color="#9B6BFF" stop-opacity=".18"/></linearGradient>
+              <filter id="pgBlur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+              <filter id="pgShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#3B2FA8" flood-opacity=".16"/></filter>
+            </defs>
+
+            <!-- the document -->
+            <g class="ps-doc" filter="url(#pgShadow)">
+              <rect x="14" y="128" width="124" height="164" rx="16" fill="#fff" stroke="rgba(27,26,51,.08)"/>
+              <rect x="30" y="146" width="12" height="15" rx="3" fill="#FF7A59"/>
+              <text x="48" y="157" class="ps-mono">handbook.pdf</text>
+              <rect x="30" y="178" width="92" height="7" rx="3.5" fill="#ECEAF6"/>
+              <rect x="30" y="194" width="76" height="7" rx="3.5" fill="#ECEAF6"/>
+              <rect x="30" y="210" width="86" height="7" rx="3.5" fill="#ECEAF6"/>
+              <rect x="30" y="226" width="64" height="7" rx="3.5" fill="#FFE3D9"/>
+              <rect x="30" y="242" width="90" height="7" rx="3.5" fill="#ECEAF6"/>
+              <rect x="30" y="258" width="70" height="7" rx="3.5" fill="#ECEAF6"/>
+            </g>
+            <text x="76" y="320" text-anchor="middle" class="ps-cap">1 big document</text>
+
+            <!-- incoming light -->
+            <path d="M140 211 L268 208" stroke="url(#pgBeam)" stroke-width="9" stroke-linecap="round" fill="none" filter="url(#pgBlur)" opacity=".7"/>
+            <path d="M140 211 L268 208" stroke="url(#pgBeam)" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <path class="ps-flow" d="M140 211 L268 208" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 12" fill="none"/>
+
+            <!-- spectrum rays (glow layer + crisp layer) -->
+            <g filter="url(#pgBlur)" opacity=".55">
+              <path d="M331 194 L452 42 L452 74 L333 199Z" fill="url(#pgR1)"/>
+              <path d="M335 206 L452 124 L452 156 L337 211Z" fill="url(#pgR2)"/>
+              <path d="M340 218 L452 206 L452 238 L342 223Z" fill="url(#pgR3)"/>
+              <path d="M345 230 L452 288 L452 320 L347 235Z" fill="url(#pgR4)"/>
+              <path d="M350 242 L452 370 L452 402 L352 247Z" fill="url(#pgR5)"/>
+            </g>
+            <g class="ps-rays">
+              <path class="ps-ray" d="M331 194 L452 42 L452 74 L333 199Z" fill="url(#pgR1)"/>
+              <path class="ps-ray" d="M335 206 L452 124 L452 156 L337 211Z" fill="url(#pgR2)"/>
+              <path class="ps-ray" d="M340 218 L452 206 L452 238 L342 223Z" fill="url(#pgR3)"/>
+              <path class="ps-ray" d="M345 230 L452 288 L452 320 L347 235Z" fill="url(#pgR4)"/>
+              <path class="ps-ray" d="M350 242 L452 370 L452 402 L352 247Z" fill="url(#pgR5)"/>
+            </g>
+
+            <!-- the prism -->
+            <g class="ps-prism" filter="url(#pgShadow)">
+              <path d="M304 112 L380 302 L228 302Z" fill="url(#pgGlass)" stroke="url(#pgEdge)" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M304 130 L262 284" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+            </g>
+            <text x="304" y="332" text-anchor="middle" class="ps-cap">chunking</text>
+
+            <!-- chunk cards -->
+            <g class="ps-card" style="--d:0s">
+              <rect x="452" y="30" width="116" height="56" rx="13" fill="#fff" stroke="rgba(27,26,51,.08)" filter="url(#pgShadow)"/>
+              <rect x="452" y="30" width="6" height="56" rx="3" fill="#FF5D73"/>
+              <text x="468" y="50" class="ps-mono">#1</text>
+              <rect x="468" y="58" width="84" height="6" rx="3" fill="#FFE1E6"/><rect x="468" y="70" width="60" height="6" rx="3" fill="#F1EFF8"/>
+            </g>
+            <g class="ps-card" style="--d:.4s">
+              <rect x="452" y="112" width="116" height="56" rx="13" fill="#fff" stroke="rgba(27,26,51,.08)" filter="url(#pgShadow)"/>
+              <rect x="452" y="112" width="6" height="56" rx="3" fill="#FF9A3C"/>
+              <text x="468" y="132" class="ps-mono">#2</text>
+              <rect x="468" y="140" width="76" height="6" rx="3" fill="#FFEBD6"/><rect x="468" y="152" width="56" height="6" rx="3" fill="#F1EFF8"/>
+            </g>
+            <g class="ps-card ps-card--hit" style="--d:.8s">
+              <rect x="452" y="194" width="116" height="56" rx="13" fill="#fff" stroke="#2BC48A" stroke-width="2" filter="url(#pgShadow)"/>
+              <rect x="452" y="194" width="6" height="56" rx="3" fill="#2BC48A"/>
+              <text x="468" y="214" class="ps-mono">#3</text>
+              <rect x="468" y="222" width="86" height="6" rx="3" fill="#D5F5E7"/><rect x="468" y="234" width="64" height="6" rx="3" fill="#F1EFF8"/>
+              <rect x="512" y="180" width="54" height="22" rx="11" fill="#1B1A33"/>
+              <text x="539" y="195" text-anchor="middle" class="ps-badge">match ✓</text>
+            </g>
+            <g class="ps-card" style="--d:1.2s">
+              <rect x="452" y="276" width="116" height="56" rx="13" fill="#fff" stroke="rgba(27,26,51,.08)" filter="url(#pgShadow)"/>
+              <rect x="452" y="276" width="6" height="56" rx="3" fill="#4C7DFF"/>
+              <text x="468" y="296" class="ps-mono">#4</text>
+              <rect x="468" y="304" width="80" height="6" rx="3" fill="#DDE7FF"/><rect x="468" y="316" width="52" height="6" rx="3" fill="#F1EFF8"/>
+            </g>
+            <g class="ps-card" style="--d:1.6s">
+              <rect x="452" y="358" width="116" height="56" rx="13" fill="#fff" stroke="rgba(27,26,51,.08)" filter="url(#pgShadow)"/>
+              <rect x="452" y="358" width="6" height="56" rx="3" fill="#9B6BFF"/>
+              <text x="468" y="378" class="ps-mono">#5</text>
+              <rect x="468" y="386" width="72" height="6" rx="3" fill="#EBE1FF"/><rect x="468" y="398" width="58" height="6" rx="3" fill="#F1EFF8"/>
+            </g>
+            <text x="510" y="440" text-anchor="middle" class="ps-cap">searchable chunks</text>
+          </svg>
         </div>
       </div>
 
@@ -737,7 +826,7 @@ chunks = splitter.split_text(handbook_text)
   <script src="js/docloader.js?v=7"></script>
   <script src="js/progress.js?v=7"></script>
   <script src="js/quiz.js?v=7"></script>
-  <script src="js/fun.js?v=7"></script>
+  <script src="js/fun.js?v=8"></script>
   <script src="js/app.js?v=7"></script>
 </body>
 </html>
