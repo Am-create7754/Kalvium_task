@@ -2,6 +2,10 @@
 
 *Learn. Experiment. Build.*
 
+### ▶ Live site: **https://am-create7754.github.io/Kalvium_task/**
+
+Open it in Chrome, Edge or Firefox. No install, no login, no API keys.
+
 **An interactive, self-paced 45-minute lesson that teaches beginners how _text chunking and document processing_ power Retrieval-Augmented Generation (RAG).**
 
 Built for the **Instructional Designer Intern (AI Courses) — Kalvium** assessment.
