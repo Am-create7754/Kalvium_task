@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Chunking Engine
+   PRISM — Chunking Engine
    ---------------------------------------------------------------------
    Pure functions, no DOM access. Works in the browser (window.ChunkEngine)
    and in Node (module.exports) so the logic can be unit-tested.

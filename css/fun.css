@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Play layer styles (mascot, XP, badges, motion)
+   PRISM — Play layer styles (mascot, XP, badges, motion)
    Everything animated lives under html.play; html.calm switches it off.
    ===================================================================== */
 
@@ -180,7 +180,8 @@
 @media (max-width: 640px) {
   .topbar__inner { gap: 8px; width: calc(100% - 20px); }
   .brand__name { font-size: 1.05rem; }
-  .brand__mark { width: 24px; padding: 4px; }
+  .brand__mark { width: 28px; height: 28px; padding: 2px; }
+  .brand__sub { display: none; }
   .topbar__actions { gap: 6px; }
   .progress-pill { padding: .3rem .55rem .3rem .3rem; font-size: .76rem; gap: .35rem; }
   .progress-pill__ring { width: 22px; height: 22px; }

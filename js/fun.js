@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Play layer: learn while playing
+   PRISM — Play layer: learn while playing
    ---------------------------------------------------------------------
    • Chunky, a little document mascot that gives tips and reacts
    • XP + levels + 10 badges for real learning actions
@@ -38,10 +38,10 @@
     { id: 'explorer', ic: '📄', name: 'Doc Explorer', desc: 'Bring your own document' },
     { id: 'engineer', ic: '🛠️', name: 'Doc Engineer', desc: 'Pass all 3 challenge tests' },
     { id: 'quiz', ic: '🧠', name: 'Quiz Whiz', desc: 'Score 5 or more in the quiz' },
-    { id: 'champion', ic: '🏆', name: 'ChunkLab Champion', desc: 'Complete every module' }
+    { id: 'champion', ic: '🏆', name: 'PRISM Champion', desc: 'Complete every module' }
   ];
   const TIPS = {
-    home: ['Hi! I\'m Chunky ✂️ I turn huge documents into bite-size pieces. Let\'s play!', 'Collect badges and XP as you learn. Tap me any time for a hint!'],
+    home: ['Hi! I\'m Chunky ✂️ Welcome to PRISM, your chunk playground. I turn huge documents into bite-size pieces. Let\'s play!', 'Collect badges and XP as you learn. Tap me any time for a hint!'],
     objectives: ['7 goals, 45 minutes. I\'ll keep score — every real experiment earns XP ⭐', 'Orange-outlined boxes are toys. Poke them!'],
     problem: ['Flip the toggle! Look how much text the AI would have to read 😱', 'Press ▶ Play to send a question through the whole RAG pipeline!'],
     chunking: ['Press "Chunk it ✂" and watch me slice that paragraph!', 'Spot the coral edge? That chunk was cut mid-sentence. Ouch!'],

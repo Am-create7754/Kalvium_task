@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — UI wiring for every interactive module.
+   PRISM — UI wiring for every interactive module.
    Logic lives in chunking.js (ChunkEngine) and retrieval.js (Retriever);
    this file only reads controls and renders results.
    ===================================================================== */
@@ -111,15 +111,15 @@
     });
 
     const stages = [
-      { t: 'Document', tag: 'live', d: 'The source file — a PDF handbook, a web page, a Word document. This is the knowledge we want the AI to use. In ChunkLab you can upload your own in the Lab and the RAG simulation.' },
-      { t: 'Text extraction', tag: 'live', d: 'Software pulls the plain text out of the file and cleans it: removing page numbers, broken hyphenation, wrapped lines, and extra spaces. Garbage in here means garbage everywhere after. Upload a PDF or Word file in the Lab to see the cleanup report. (Scanned PDFs need OCR, which ChunkLab does not do.)' },
+      { t: 'Document', tag: 'live', d: 'The source file — a PDF handbook, a web page, a Word document. This is the knowledge we want the AI to use. In PRISM you can upload your own in the Lab and the RAG simulation.' },
+      { t: 'Text extraction', tag: 'live', d: 'Software pulls the plain text out of the file and cleans it: removing page numbers, broken hyphenation, wrapped lines, and extra spaces. Garbage in here means garbage everywhere after. Upload a PDF or Word file in the Lab to see the cleanup report. (Scanned PDFs need OCR, which PRISM does not do.)' },
       { t: 'Chunking', tag: 'live', focus: true, d: 'The clean text is split into small, meaningful pieces called chunks. This is what you will master today — and what you can try live in the Lab.' },
       { t: 'Embeddings', tag: 'concept', d: 'Each chunk is turned into an embedding: a list of numbers that captures its meaning, so chunks with similar meaning get similar numbers. (A topic for another lesson.)' },
       { t: 'Vector database', tag: 'concept', d: 'The embeddings are stored in a database built to quickly find the vectors most similar to a query vector.' },
-      { t: 'Retrieval', tag: 'sim', d: 'When a user asks a question, the system finds the top few chunks most related to it. ChunkLab simulates this step with keyword matching.' },
+      { t: 'Retrieval', tag: 'sim', d: 'When a user asks a question, the system finds the top few chunks most related to it. PRISM simulates this step with keyword matching.' },
       { t: 'LLM response', tag: 'concept', d: 'The retrieved chunks are added to the prompt, and the language model writes an answer grounded in them.' }
     ];
-    const tagTxt = { live: 'Working in ChunkLab', sim: 'Simulated in ChunkLab', concept: 'Explained conceptually' };
+    const tagTxt = { live: 'Working in PRISM', sim: 'Simulated in PRISM', concept: 'Explained conceptually' };
     const pipe = $('#pipeline');
     pipe.innerHTML = stages.map((s, i) =>
       '<button class="pipe-step' + (s.focus ? ' is-focus' : '') + '" role="tab" id="pipe-' + i + '" aria-controls="pipelineDetail" aria-selected="false" data-i="' + i + '">' +

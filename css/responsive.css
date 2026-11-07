@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Responsive layouts
+   PRISM — Responsive layouts
    ===================================================================== */
 
 /* Large tablets / small laptops */
@@ -76,3 +76,6 @@
 }
 
 @media (max-width: 1440px) { .xp-pill__lv { display: none; } }
+
+/* Descriptor under the PRISM wordmark only where there is room */
+@media (max-width: 1440px) and (min-width: 1181px) { .brand__sub { display: none; } }

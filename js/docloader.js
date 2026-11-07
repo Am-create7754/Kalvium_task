@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Document loader: TEXT EXTRACTION + PREPROCESSING
+   PRISM — Document loader: TEXT EXTRACTION + PREPROCESSING
    ---------------------------------------------------------------------
    Lets learners bring their own document. Everything happens in the
    browser — the file is never uploaded to any server.

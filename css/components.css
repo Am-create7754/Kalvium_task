@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Components
+   PRISM — Components
    ===================================================================== */
 
 /* ---------- Buttons ---------- */
@@ -82,12 +82,12 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px #fff
 .brand { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; flex-shrink: 0; }
 .brand__name { font: 800 1.2rem/1 var(--f-head); color: var(--teal); letter-spacing: -.03em; }
 .brand__name b { color: var(--coral-ink); font-weight: 800; }
-.brand__mark { display: inline-grid; grid-template-columns: 1fr; gap: 3px; width: 28px; padding: 5px; background: var(--teal); border-radius: 9px; box-shadow: var(--btn-shadow); }
-.brand__mark i { display: block; height: 4px; border-radius: 2px; background: #fff; }
-.brand__mark i:nth-child(2) { background: var(--coral); width: 70%; }
-.brand__mark i:nth-child(3) { width: 85%; }
-.brand__mark--lg { width: 72px; padding: 13px; gap: 7px; border-radius: 20px; }
-.brand__mark--lg i { height: 9px; border-radius: 5px; }
+.brand__mark { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 3px; background: var(--teal); border-radius: 10px; box-shadow: var(--btn-shadow); flex-shrink: 0; }
+.brand__mark svg { width: 100%; height: 100%; overflow: visible; }
+.brand__mark--lg { width: 76px; height: 76px; padding: 10px; border-radius: 22px; }
+.brand__text { display: grid; line-height: 1; gap: 3px; }
+.brand__name { letter-spacing: .02em; }
+.brand__sub { font: 600 .62rem/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 
 .topnav { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .topnav::-webkit-scrollbar { display: none; }
@@ -491,7 +491,6 @@ mark.kw { background: var(--coral-100); color: var(--forest); box-shadow: inset 
 .complete__stats span:last-child { font-size: .78rem; color: #BFE0D8; }
 .complete .btn-row { margin-top: 1.2rem; }
 .complete.is-done .complete__badge .brand__mark { background: var(--coral); }
-.complete.is-done .complete__badge .brand__mark i:nth-child(2) { background: var(--teal); }
 
 /* ---------- Footer & toast ---------- */
 .footer { padding: 36px 0 48px; border-top: 1px solid var(--line); }

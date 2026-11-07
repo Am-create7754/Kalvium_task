@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Knowledge check
+   PRISM — Knowledge check
    One question at a time · select → submit → feedback + explanation →
    next · score tracking · final screen with review · retake.
    ===================================================================== */

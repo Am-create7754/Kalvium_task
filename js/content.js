@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Sample content
+   PRISM — Sample content
    All illustrative answers in the RAG simulation are extracted from
    HANDBOOK below, so every answer is supported by the sample document.
    (Fictional university — not a real institution's policy.)

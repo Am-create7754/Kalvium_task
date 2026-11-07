@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Learning progress & navigation
+   PRISM — Learning progress & navigation
    Builds the sticky nav, lesson-map drawer, 45-minute timeline and the
    prev / mark-done / next footer of every module. Progress is kept in
    localStorage (wrapped in try/catch — the lesson works without it).
@@ -169,7 +169,7 @@
     $('#cmpChallenge').textContent = c ? c.passed + '/' + c.total + ' tests' : '–';
     const all = n === SECTIONS.length;
     $('#complete').classList.toggle('is-done', all);
-    $('#completeTitle').textContent = all ? 'You completed ChunkLab! 🎉' : (n ? 'Keep going — you\'re on your way' : 'Your progress lives here');
+    $('#completeTitle').textContent = all ? 'You completed PRISM! 🎉' : (n ? 'Keep going — you\'re on your way' : 'Your progress lives here');
     const missing = SECTIONS.filter((s) => !isDone(s.id)).map((s) => s.short);
     $('#completeMsg').textContent = all
       ? 'You can now explain why RAG systems chunk documents, choose a strategy, tune size and overlap, and predict how those choices affect retrieval. Next step: try a real splitter (like LangChain\'s) on your own PDF and test it with real questions.'

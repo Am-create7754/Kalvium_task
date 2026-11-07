@@ -1,4 +1,6 @@
-# ChunkLab — Learn. Experiment. Build.
+# PRISM — Interactive Chunk Playground
+
+*Learn. Experiment. Build.*
 
 **An interactive, self-paced 45-minute lesson that teaches beginners how _text chunking and document processing_ power Retrieval-Augmented Generation (RAG).**
 
@@ -6,7 +8,7 @@ Built for the **Instructional Designer Intern (AI Courses) — Kalvium** assessm
 Selected topic: **#5 · Text Chunking and Document Processing for RAG.**
 
 > Runs 100% in the browser. No backend, no API keys, no paid services, no build step.
-> **Bring your own document:** upload or drop a `.txt`, `.md`, `.pdf`, `.docx` or `.html` file (or paste text). ChunkLab extracts and cleans the text in the browser, then lets you chunk it and run the RAG simulation on it. Try the files in [`samples/`](samples/).
+> **Bring your own document:** upload or drop a `.txt`, `.md`, `.pdf`, `.docx` or `.html` file (or paste text). PRISM extracts and cleans the text in the browser, then lets you chunk it and run the RAG simulation on it. Try the files in [`samples/`](samples/).
 
 ---
 
@@ -115,7 +117,7 @@ By the end, learners can:
 
 ## What is real and what is simulated
 
-| Pipeline stage | In ChunkLab |
+| Pipeline stage | In PRISM |
 |---|---|
 | Document upload | **Working** (upload, drag & drop, or paste) |
 | Text extraction | **Working** for TXT, MD, HTML, PDF (text-based) and DOCX. Scanned PDFs (OCR) are not supported |
@@ -132,7 +134,7 @@ Word counts are a teaching simplification. Production systems measure chunk size
 ## Project structure
 
 ```
-chunklab/
+./
 ├── index.html              # All 9 modules (semantic sections)
 ├── README.md
 ├── .nojekyll               # GitHub Pages: serve files as-is
@@ -164,6 +166,9 @@ chunklab/
 ## Testing
 - **Automated:** `node tests/engine.test.js` runs 28 tests covering empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries and headings, retrieval relevance for every sample question, fragmentation detection, document cleanup (page numbers, hyphenation, wrapped lines, truncation), and retrieval on arbitrary user documents.
 - **Manual:** see [`docs/TESTING.md`](docs/TESTING.md).
+
+## Why "PRISM"?
+A prism splits one beam of light into separate bands, just as chunking splits one document into separate pieces. Each band can be examined on its own, and the logo shows exactly that.
 
 ## Credits
 Content, code and design are original work for this assessment. The sample university and its policies are fictional. Fonts are from Google Fonts. The LangChain snippet uses the public `langchain-text-splitters` API for illustration. PDF extraction uses [pdf.js](https://mozilla.github.io/pdf.js/) and DOCX extraction uses [mammoth.js](https://github.com/mwilliamson/mammoth.js), both loaded from cdnjs. The documents in `samples/` are fictional.

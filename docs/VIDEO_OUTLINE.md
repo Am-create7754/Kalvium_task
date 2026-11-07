@@ -6,7 +6,7 @@ Record with the site open in a browser. Show while you speak, and keep each part
 
 ### 0:00 – 0:40 · Intro & why this topic
 *Show: hero section.*
-- "I built ChunkLab, a 45-minute self-paced lesson on **text chunking for RAG**."
+- "I built PRISM — an Interactive Chunk Playground — a 45-minute self-paced lesson on **text chunking for RAG**."
 - **Why this topic:** almost every "chat with your documents" app uses RAG, and chunking is the step beginners never see but which decides what the AI can find. A great model can't answer from a chunk that cut the answer in half. It's also very visual, so it suits an interactive lesson.
 
 ### 0:40 – 1:40 · How I broke the concept down
@@ -47,6 +47,6 @@ Record with the site open in a browser. Show while you speak, and keep each part
 ### 5:50 – 6:20 · Real-world relevance & close
 *Show: real-world apps + architecture + code.*
 - PDF Q&A, university assistants, enterprise search, support bots, legal and research assistants.
-- Architecture legend: what's working, simulated, or conceptual in ChunkLab.
+- Architecture legend: what's working, simulated, or conceptual in PRISM.
 - The LangChain snippet shows how learners would do this in a real project.
-- Close: "ChunkLab turns an invisible engineering step into something students can see, break, and reason about."
+- Close: "PRISM turns an invisible engineering step into something students can see, break, and reason about."

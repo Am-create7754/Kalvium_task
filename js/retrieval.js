@@ -1,5 +1,5 @@
 /* =====================================================================
-   ChunkLab — Keyword Retrieval Simulator
+   PRISM — Keyword Retrieval Simulator
    ---------------------------------------------------------------------
    HONEST LABEL: this is a teaching simulation. It does NOT use embeddings,
    a vector database, or an LLM. It scores chunks with a simple

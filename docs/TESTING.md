@@ -1,4 +1,4 @@
-# ChunkLab — Testing checklist
+# PRISM — Testing checklist
 
 Automated: `node tests/engine.test.js` → **28 tests passed**.
 Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).

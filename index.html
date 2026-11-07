@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChunkLab — Learn Text Chunking for RAG</title>
-  <meta name="description" content="ChunkLab is a 45-minute interactive lesson that teaches beginners how text chunking and document processing power Retrieval-Augmented Generation (RAG)." />
-  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" />
+  <title>PRISM — Interactive Chunk Playground</title>
+  <meta name="description" content="PRISM is an interactive chunk playground: a 45-minute lesson that teaches beginners how text chunking and document processing power Retrieval-Augmented Generation (RAG)." />
+  <link rel="icon" href="assets/images/favicon.svg?v=6" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=4" />
-  <link rel="stylesheet" href="css/components.css?v=4" />
-  <link rel="stylesheet" href="css/responsive.css?v=4" />
-  <link rel="stylesheet" href="css/fun.css?v=5" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
+  <link rel="stylesheet" href="css/components.css?v=6" />
+  <link rel="stylesheet" href="css/responsive.css?v=6" />
+  <link rel="stylesheet" href="css/fun.css?v=6" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to lesson</a>
@@ -20,9 +20,9 @@
   <!-- ============ STICKY TOP NAV ============ -->
   <header class="topbar" id="topbar">
     <div class="topbar__inner">
-      <a href="#home" class="brand" aria-label="ChunkLab home">
-        <span class="brand__mark" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="brand__name">Chunk<b>Lab</b></span>
+      <a href="#home" class="brand" aria-label="PRISM, Interactive Chunk Playground — home">
+        <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.5 14 8.2 12.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><path d="M12 4.5 18.5 18H5.5Z" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.3 11.4 22.5 8.6" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><path d="M15.9 12.7 22.6 12.9" stroke="#F07858" stroke-width="1.7" stroke-linecap="round"/><path d="M16.5 14 22.4 17.2" stroke="#8FC1B5" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <span class="brand__text"><span class="brand__name">PRI<b>SM</b></span><span class="brand__sub">Interactive Chunk Playground</span></span>
       </a>
 
       <nav class="topnav" aria-label="Lesson sections">
@@ -73,7 +73,7 @@
     <section class="hero" id="home" data-section="home">
       <div class="container hero__grid">
         <div class="hero__copy">
-          <p class="eyebrow"><span class="dot"></span> Learn. Experiment. Build.</p>
+          <p class="eyebrow"><span class="dot"></span> PRISM · Interactive Chunk Playground</p>
           <h1>Teach Your AI to <span class="u-teal">Read Smarter.</span></h1>
           <p class="lead">Before an AI assistant can answer questions about a 200-page handbook, someone has to cut that handbook into the right-sized pieces. In this lesson you will learn how <b>text chunking</b> works, try it on real text, and see how it decides what a RAG chatbot can find.</p>
 
@@ -138,7 +138,7 @@
           <li class="obj-card clay"><span class="obj-card__n">07</span><p>Explain how chunks are <b>retrieved</b> to answer questions in real AI apps.</p></li>
         </ol>
         <div class="howto clay clay--beige">
-          <h3 class="h-sm">How to use ChunkLab</h3>
+          <h3 class="h-sm">How to use PRISM</h3>
           <ul class="howto__list">
             <li><span class="pill">Read</span> short explanations, one idea at a time.</li>
             <li><span class="pill pill--coral">Try</span> every orange-outlined box — they are interactive.</li>
@@ -284,7 +284,7 @@
             <p class="approach__stat" id="approachSentenceStat"></p>
           </div>
         </div>
-        <p class="small muted">Both columns are generated live by ChunkLab's real chunking engine from the same text.</p>
+        <p class="small muted">Both columns are generated live by PRISM's real chunking engine from the same text.</p>
 
         <div class="section__foot" data-foot="chunking"></div>
       </div>
@@ -354,13 +354,13 @@
         <h3 class="h-md">What do we count in? Characters, words, tokens, sentences</h3>
         <div class="units">
           <div class="unit clay"><b>Character-based</b><p>Split every <i>N</i> characters. Easy, but can cut words in half.</p><code>"Attend|ance is…"</code></div>
-          <div class="unit clay"><b>Word-based</b><p>Split every <i>N</i> words. Easy for humans to read — what ChunkLab's simulator uses.</p><code>"Attendance is | recorded…"</code></div>
+          <div class="unit clay"><b>Word-based</b><p>Split every <i>N</i> words. Easy for humans to read — what PRISM's simulator uses.</p><code>"Attendance is | recorded…"</code></div>
           <div class="unit clay unit--key"><b>Token-based</b><p>Split every <i>N</i> <b>tokens</b> — the units a model actually reads. A token is often a word or part of a word.</p><code>"un" "believ" "able"</code></div>
           <div class="unit clay"><b>Sentence-aware</b><p>Keep whole sentences together and pack them up to a size limit.</p><code>"…exam. | Hall tickets…"</code></div>
         </div>
 
         <div class="callout callout--coral">
-          <b>Important technical distinction:</b> LLM context windows and embedding-model input limits are measured in <b>tokens</b>, not words. In English, one token is roughly ¾ of a word on average, but it varies by tokenizer and language. Production chunkers usually measure size in tokens with the model's own tokenizer. ChunkLab's word-based simulator is a <b>simplified teaching tool</b>, not a production tokenizer.
+          <b>Important technical distinction:</b> LLM context windows and embedding-model input limits are measured in <b>tokens</b>, not words. In English, one token is roughly ¾ of a word on average, but it varies by tokenizer and language. Production chunkers usually measure size in tokens with the model's own tokenizer. PRISM's word-based simulator is a <b>simplified teaching tool</b>, not a production tokenizer.
         </div>
 
         <div class="clay try-box" id="unitMeter">
@@ -659,7 +659,7 @@
         <h3 class="h-md">The end-to-end architecture</h3>
         <p class="small muted">What you used today versus what a production system adds.</p>
         <ol class="arch" id="archFlow"><!-- app.js --></ol>
-        <div class="legend small"><span><i class="sw sw--teal"></i>Working in ChunkLab</span><span><i class="sw sw--coral"></i>Simplified simulation</span><span><i class="sw sw--beige"></i>Explained conceptually</span></div>
+        <div class="legend small"><span><i class="sw sw--teal"></i>Working in PRISM</span><span><i class="sw sw--coral"></i>Simplified simulation</span><span><i class="sw sw--beige"></i>Explained conceptually</span></div>
 
         <div class="grid-2 code-row">
           <div class="clay">
@@ -676,7 +676,7 @@ chunks = splitter.split_text(handbook_text)
             <p class="tiny muted">It tries paragraph breaks first, then lines, then spaces — a structure-aware strategy. Size can be measured in tokens by passing a tokenizer-based length function.</p>
           </div>
           <div class="clay">
-            <p class="label">The core of ChunkLab's fixed-size chunker (JavaScript)</p>
+            <p class="label">The core of PRISM's fixed-size chunker (JavaScript)</p>
 <pre class="code"><code><span class="k">const</span> S = C - O;              <span class="c">// step: size minus overlap</span>
 <span class="k">for</span> (<span class="k">let</span> start = <span class="n">0</span>; start &lt; N; start += S) {
   <span class="k">const</span> end = Math.min(start + C, N);
@@ -698,7 +698,7 @@ chunks = splitter.split_text(handbook_text)
 
         <!-- Completion -->
         <div class="complete clay clay--teal" id="complete">
-          <div class="complete__badge" aria-hidden="true"><span class="brand__mark brand__mark--lg"><i></i><i></i><i></i></span></div>
+          <div class="complete__badge" aria-hidden="true"><span class="brand__mark brand__mark--lg"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.5 14 8.2 12.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><path d="M12 4.5 18.5 18H5.5Z" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.3 11.4 22.5 8.6" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><path d="M15.9 12.7 22.6 12.9" stroke="#F07858" stroke-width="1.7" stroke-linecap="round"/><path d="M16.5 14 22.4 17.2" stroke="#8FC1B5" stroke-width="1.7" stroke-linecap="round"/></svg></span></div>
           <div class="complete__body">
             <p class="label label--light">Lesson summary</p>
             <h2 id="completeTitle">Keep going — you're on your way</h2>
@@ -707,7 +707,7 @@ chunks = splitter.split_text(handbook_text)
               <div><span class="big mono" id="cmpQuiz">–</span><span>quiz score</span></div>
               <div><span class="big mono" id="cmpChallenge">–</span><span>challenge</span></div>
             </div>
-            <p id="completeMsg">Finish the remaining modules to complete ChunkLab.</p>
+            <p id="completeMsg">Finish the remaining modules to complete PRISM.</p>
             <p class="tiny" style="color:#BFE0D8;margin-bottom:0"><span data-xp-level>Chunk Rookie · 0 XP</span> · badges <span data-badge-count>0/10</span></p>
             <ul class="badge-shelf" data-badge-shelf aria-label="Badges earned"></ul>
             <div class="btn-row">
@@ -722,8 +722,8 @@ chunks = splitter.split_text(handbook_text)
 
   <footer class="footer">
     <div class="container footer__inner">
-      <span class="brand__name">Chunk<b>Lab</b></span>
-      <span class="small">Learn. Experiment. Build. · A self-paced lesson on text chunking for RAG.</span>
+      <span class="brand__name">PRI<b>SM</b></span>
+      <span class="small">Interactive Chunk Playground · Learn. Experiment. Build. · A self-paced lesson on text chunking for RAG.</span>
       <span class="tiny muted">Runs fully in your browser · no API keys, no tracking · sample university is fictional.</span>
     </div>
   </footer>
@@ -731,13 +731,13 @@ chunks = splitter.split_text(handbook_text)
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="badge-pop" id="badgePop" role="status" aria-live="polite"></div>
 
-  <script src="js/content.js?v=4"></script>
-  <script src="js/chunking.js?v=4"></script>
-  <script src="js/retrieval.js?v=4"></script>
-  <script src="js/docloader.js?v=4"></script>
-  <script src="js/progress.js?v=4"></script>
-  <script src="js/quiz.js?v=4"></script>
-  <script src="js/fun.js?v=4"></script>
-  <script src="js/app.js?v=4"></script>
+  <script src="js/content.js?v=6"></script>
+  <script src="js/chunking.js?v=6"></script>
+  <script src="js/retrieval.js?v=6"></script>
+  <script src="js/docloader.js?v=6"></script>
+  <script src="js/progress.js?v=6"></script>
+  <script src="js/quiz.js?v=6"></script>
+  <script src="js/fun.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
