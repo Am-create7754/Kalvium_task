@@ -5,6 +5,7 @@ Live site: https://am-create7754.github.io/Kalvium_task/ · Repo: https://github
 > **Important:** this is **not a script to read**. Kalvium wants to hear *your* understanding.
 > For every part you get **💬 points to cover**: say them in your own words, the way you'd explain to a friend.
 > The **🗣 "if you get stuck"** lines are simple examples only. Don't memorise them.
+> Want full sentences to practise with? See **[VIDEO_SCRIPT.md](VIDEO_SCRIPT.md)**, a complete plain-language script with spots to add your own lines.
 
 ---
 
