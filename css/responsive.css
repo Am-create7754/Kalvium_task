@@ -75,10 +75,10 @@
   #mapToggle span { display: none; }
 }
 
-@media (max-width: 1440px) { .xp-pill__lv { display: none; } }
+
 
 /* Descriptor under the PRISM wordmark only where there is room */
-@media (max-width: 1440px) and (min-width: 1181px) { .brand__sub { display: none; } }
+
 
 /* Grid children may shrink below their content (long code lines scroll inside .code) */
 .grid-2 > *, .code-row > *, .lab > *, .rag > *, .challenge > * { min-width: 0; }

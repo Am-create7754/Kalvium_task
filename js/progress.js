@@ -78,6 +78,10 @@
     chip.innerHTML = '<span class="nowchip__n">★</span><span class="nowchip__t">Start</span><span aria-hidden="true" class="nowchip__caret">▾</span>';
     $('.topbar__inner').insertBefore(chip, $('.topbar__actions'));
     chip.addEventListener('click', () => $('#mapToggle').click());
+    // Never let the rail scroll or clip modules: measure, then degrade.
+    let fitT;
+    window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitNav, 80); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNav);
 
     $('#mapList').innerHTML = SECTIONS.map((s, i) =>
       '<li><a class="map-item" href="#' + s.id + '" data-nav="' + s.id + '">' +
@@ -155,12 +159,27 @@
       $('.nowchip__t', chip).textContent = idx >= 0 ? SECTIONS[idx].short : 'Start';
       chip.classList.toggle('is-done', idx >= 0 && isDone(id));
     }
-    const link = $('.topnav [data-nav="' + id + '"]');
-    if (link && link.scrollIntoView && window.innerWidth > 1180) {
-      const nav = $('.topnav');
-      const l = link.offsetLeft - nav.clientWidth / 2 + link.clientWidth / 2;
-      nav.scrollTo({ left: l, behavior: 'smooth' });
-    }
+    fitNav();
+  }
+
+  /**
+   * Make every module visible in the top rail at any width or zoom:
+   *   1. full labels, if they fit
+   *   2. else hide secondary text (logo subtitle, XP level name)
+   *   3. else numbered steps, with only the current module named
+   */
+  function fitNav() {
+    const bar = $('.topbar'), nav = $('.topnav'), list = $('#topnavList');
+    if (!bar || !list) return;
+    const over = () => list.scrollWidth > list.clientWidth + 1;
+    bar.classList.remove('is-tight', 'use-chip');
+    nav.classList.remove('topnav--compact', 'topnav--mini');
+    if (getComputedStyle(nav).display === 'none') { bar.classList.add('use-chip'); return; }   // phones
+    if (over()) bar.classList.add('is-tight');          // 2. drop secondary text
+    if (over()) nav.classList.add('topnav--compact');   // 3. numbers + current name
+    if (over()) nav.classList.add('topnav--mini');      // 4. numbers only
+    if (over()) bar.classList.add('use-chip');          // 5. "where am I" chip
+    list.scrollLeft = 0;
   }
 
   // ---------- Render dynamic state ----------
@@ -195,6 +214,7 @@
     $('#finishBtn').disabled = all;
 
     listeners.forEach((f) => f('render'));
+    fitNav();
   }
 
   // ---------- "Welcome back" resume prompt ----------

@@ -10,7 +10,7 @@
 .topnav__list {
   display: inline-flex; gap: 2px; padding: 4px; background: var(--white); border-radius: 999px;
   box-shadow: 0 0 0 1px rgba(38, 59, 56, .14), 0 4px 14px -8px rgba(38, 59, 56, .3);
-  overflow-x: auto; scrollbar-width: none; max-width: 100%;
+  overflow: hidden; max-width: 100%;
 }
 .topnav__list::-webkit-scrollbar { display: none; }
 .topnav__link {
@@ -33,37 +33,37 @@
 /* Phones: "where am I" chip */
 .nowchip { display: none; }
 
-/* Mid laptops: tighter, still labelled */
-@media (max-width: 1440px) {
-  .topnav__link { padding: .4rem .6rem .4rem .38rem; font-size: .8rem; gap: .35rem; }
-  .topnav__n { width: 20px; height: 20px; font-size: .68rem; }
+/* Width is measured in JS (progress.js → fitNav): */
+/* step 2 — drop secondary text in the bar */
+.topbar.is-tight .brand__sub, .topbar.is-tight .xp-pill__lv, .topbar.is-tight .progress-pill .hide-sm, .topbar.is-tight #mapToggle span { display: none; }
+.topbar.is-tight .topbar__inner { gap: 12px; }
+/* step 3 — numbered steps; the current module keeps its name */
+.topnav--compact .topnav__link:not(.is-active) .topnav__t { display: none; }
+.topnav--compact .topnav__link:not(.is-active) { padding: .32rem; }
+.topnav--compact .topnav__n { width: 26px; height: 26px; font-size: .74rem; }
+@media (max-width: 1240px) { .topnav { display: flex !important; } }
+
+/* step 4 — numbers only */
+.topnav--mini .topnav__link .topnav__t { display: none; }
+.topnav--mini .topnav__link, .topnav--mini .topnav__link.is-active { padding: .3rem; }
+
+/* step 5 (and phones) — a single "where am I" chip that opens the lesson map */
+.topbar.use-chip .topnav { display: none !important; }
+.topbar.use-chip .nowchip {
+  display: inline-flex; align-items: center; gap: .45rem; margin: 0 auto; min-width: 0;
+  border: 0; cursor: pointer; background: var(--teal); color: #fff; border-radius: 999px;
+  padding: .38rem .7rem .38rem .38rem; font: 600 .84rem/1 var(--f-body); box-shadow: 0 6px 14px -6px rgba(22, 78, 70, .6);
 }
-/* Small laptops & tablets: numbers only, the active module keeps its name */
-@media (max-width: 1240px) {
-  .topnav { display: flex !important; }
-  .topnav__link:not(.is-active) .topnav__t { display: none; }
-  .topnav__link:not(.is-active) { padding: .32rem; }
-  .topnav__link { font-size: .82rem; }
-  .topnav__n { width: 26px; height: 26px; font-size: .74rem; }
-}
-/* Phones: replace the rail with the chip */
+.nowchip__n { width: 22px; height: 22px; border-radius: 50%; background: #fff; color: var(--teal); display: inline-grid; place-items: center; font: 700 .72rem/1 var(--f-mono); flex-shrink: 0; }
+.nowchip.is-done .nowchip__n { background: var(--coral); color: var(--ink-on-coral); }
+.nowchip__t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
+.nowchip__caret { font-size: .7rem; opacity: .8; }
+
+/* Wider bar on big screens so the full labels have room */
+.topbar__inner { width: min(1680px, 100% - 40px); }
+
 @media (max-width: 720px) {
   .topnav { display: none !important; }
-  .nowchip {
-    display: inline-flex; align-items: center; gap: .45rem; margin: 0 auto; min-width: 0;
-    border: 0; cursor: pointer; background: var(--teal); color: #fff; border-radius: 999px;
-    padding: .38rem .7rem .38rem .38rem; font: 600 .84rem/1 var(--f-body); box-shadow: 0 6px 14px -6px rgba(22, 78, 70, .6);
-  }
-  .nowchip__n { width: 22px; height: 22px; border-radius: 50%; background: #fff; color: var(--teal); display: inline-grid; place-items: center; font: 700 .72rem/1 var(--f-mono); flex-shrink: 0; }
-  .nowchip.is-done .nowchip__n { background: var(--coral); color: var(--ink-on-coral); }
-  .nowchip__t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
-  .nowchip__caret { font-size: .7rem; opacity: .8; }
   .brand__name { display: none; }
-}
-
-/* Tablets: make room so all 9 numbered steps stay visible */
-@media (max-width: 960px) and (min-width: 721px) {
-  .brand__sub, .progress-pill .hide-sm, #mapToggle span { display: none; }
-  .topbar__inner { gap: 10px; }
-  .topnav__n { width: 24px; height: 24px; }
+  .topbar__inner { width: calc(100% - 20px); }
 }
