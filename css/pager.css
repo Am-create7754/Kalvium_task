@@ -1,0 +1,65 @@
+/* =====================================================================
+   PRISM — Pager: one module per page, alternating slide transitions
+   ===================================================================== */
+
+/* Only the current page is shown */
+.paged main > section { display: none; }
+.paged main > section.is-current { display: block; }
+.paged main { min-height: calc(100vh - var(--nav-h)); overflow-x: clip; }
+.paged .section { padding-top: 64px; }
+.paged .hero { padding-top: 56px; }
+
+/* Slide in / out */
+.page-in-right { animation: page-in-right .6s cubic-bezier(.16, .84, .3, 1) both; }
+.page-in-left  { animation: page-in-left  .6s cubic-bezier(.16, .84, .3, 1) both; }
+.page-out-left  { animation: page-out-left  .26s cubic-bezier(.5, 0, .75, 0) both; }
+.page-out-right { animation: page-out-right .26s cubic-bezier(.5, 0, .75, 0) both; }
+@keyframes page-in-right { from { opacity: 0; transform: translateX(90px) scale(.985); } }
+@keyframes page-in-left  { from { opacity: 0; transform: translateX(-90px) scale(.985); } }
+@keyframes page-out-left  { to { opacity: 0; transform: translateX(-90px) scale(.985); } }
+@keyframes page-out-right { to { opacity: 0; transform: translateX(90px) scale(.985); } }
+
+/* The section heading lands a beat after the page, for a layered feel */
+.page-in-right .section__head, .page-in-right .hero__copy { animation: head-in-right .7s .08s cubic-bezier(.16, .84, .3, 1) both; }
+.page-in-left .section__head, .page-in-left .hero__copy   { animation: head-in-left .7s .08s cubic-bezier(.16, .84, .3, 1) both; }
+@keyframes head-in-right { from { opacity: 0; transform: translateX(40px); } }
+@keyframes head-in-left  { from { opacity: 0; transform: translateX(-40px); } }
+
+/* While switching, hide floating helpers so the motion reads cleanly */
+.is-paging .buddy, .is-paging .resume { opacity: 0; transition: opacity .2s; }
+
+/* ---------- Edge arrows (desktop) ---------- */
+.pager__arrow {
+  position: fixed; top: 50%; z-index: 60; transform: translateY(-50%);
+  width: 56px; height: 56px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; background: var(--white); color: var(--teal);
+  box-shadow: var(--clay); font: 400 2rem/1 var(--f-head); transition: transform .25s var(--ease), box-shadow .2s, background .2s;
+}
+.pager__arrow--prev { left: 18px; }
+.pager__arrow--next { right: 18px; background: var(--teal); color: #fff; box-shadow: var(--btn-shadow); }
+.pager__arrow span { margin-top: -4px; }
+.pager__arrow small {
+  position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(-4px);
+  white-space: nowrap; font: 600 .72rem/1 var(--f-body); color: var(--teal); background: var(--white);
+  padding: .35rem .55rem; border-radius: 99px; box-shadow: var(--clay); opacity: 0; pointer-events: none; transition: all .2s;
+}
+.pager__arrow:hover small, .pager__arrow:focus-visible small { opacity: 1; transform: translateX(-50%); }
+.pager__arrow--prev:hover { transform: translateY(-50%) translateX(-3px); }
+.pager__arrow--next:hover { transform: translateY(-50%) translateX(3px); }
+.play .pager__arrow--next { animation: nudge 2.8s ease-in-out 2s infinite; }
+@keyframes nudge { 0%, 80%, 100% { transform: translateY(-50%); } 88% { transform: translateY(-50%) translateX(5px); } 94% { transform: translateY(-50%) translateX(-1px); } }
+.pager__arrow[hidden] { display: none; }
+
+.pager__count {
+  position: fixed; left: 50%; bottom: 18px; z-index: 60; transform: translateX(-50%);
+  font: 500 .78rem/1 var(--f-mono); color: var(--muted); background: rgba(255, 255, 255, .85);
+  backdrop-filter: blur(8px); padding: .45rem .75rem; border-radius: 99px; box-shadow: 0 0 0 1px var(--line);
+}
+.pager__count b { color: var(--teal); }
+
+/* Arrows only where there is room beside the content */
+@media (max-width: 1279px) { .pager__arrow { display: none; } }
+@media (max-width: 640px) {
+  .pager__count { bottom: 14px; left: 14px; transform: none; }
+  .paged .section { padding-top: 40px; }
+}

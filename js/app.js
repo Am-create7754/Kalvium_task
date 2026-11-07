@@ -1084,7 +1084,7 @@
       if (missing.length) {
         P.toast('Almost there — still to do: ' + missing.map((s) => s.short).join(', '));
         const el = document.getElementById(missing[0].id);
-        if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 400);
+        if (el) setTimeout(() => { location.hash = '#' + missing[0].id; }, 400);
       } else {
         P.toast('🎉 Lesson complete — great work!');
       }

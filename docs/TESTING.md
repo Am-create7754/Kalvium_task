@@ -60,6 +60,15 @@ Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 | 49 | Export | JSON download with settings, stats and chunk offsets; Python panel updates with the settings | ✅ |
 | 50 | Resume + cheat sheet | Returning learner sees "Continue →"; cheat sheet prints as a single page | ✅ |
 
+### Paged experience
+| # | Check | How to verify | Result |
+|---|---|---|---|
+| 51 | One module per page | Only the current module is shown; page counter "05 / 10" | ✅ |
+| 52 | Alternating transitions | Forward: Goals enters from the right, Problem from the left, Chunking from the right…; Back plays the mirror image | ✅ |
+| 53 | All navigation paths | Start button, Done · Next (also marks the module done), top nav, lesson map, edge arrows, ← → keys, browser Back, deep links like `#complete` | ✅ |
+| 54 | Swipe on phones | Swipe left/right changes page; swiping on sliders, code or chunk lists does not | ✅ |
+| 55 | Calm mode | Pages switch instantly, with no slide | ✅ |
+
 ### Play layer checks
 | # | Check | How to verify | Result |
 |---|---|---|---|
