@@ -32,7 +32,8 @@
 
   /** True if a word ends a sentence (., !, ? optionally followed by quotes/brackets). */
   function endsSentence(word) {
-    return /[.!?]["'”’)\]]*$/.test(word);
+    // . ! ?  plus Hindi danda । ॥ and full-width 。！？
+    return /[.!?।॥。！？]["'”’)\]]*$/.test(word);
   }
 
   /**

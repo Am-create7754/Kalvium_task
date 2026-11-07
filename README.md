@@ -97,7 +97,9 @@ By the end, learners can:
 ### Bring your own document (`js/docloader.js`)
 - **Text extraction in the browser.** TXT/MD/CSV/JSON are read directly. HTML has scripts, styles, nav and footer removed, and block elements become paragraphs. PDF is extracted with pdf.js, and paragraphs are rebuilt from the vertical gaps between lines. DOCX is extracted with mammoth.js. The PDF and DOCX libraries are loaded from cdnjs only when needed, so the rest of the site works offline.
 - **Preprocessing with a visible report:** removes page-number lines, repairs hyphenated line breaks, joins wrapped lines, strips invisible characters, collapses whitespace, and keeps paragraphs. The learner sees exactly what was cleaned.
-- **Guards:** 10 MB file limit, 50,000-word cap (with a notice), and friendly errors for unsupported types, legacy `.doc`, empty files and scanned PDFs (which would need OCR).
+- **Guards:** 10 MB file limit, 50,000-word cap (with a notice), and friendly errors for unsupported types, legacy `.doc`, empty files, password-protected or damaged PDFs, and scanned PDFs (which would need OCR).
+- **Works in other languages:** keyword matching keeps letters from every script and ignores Latin accents ("café" = "cafe"). Sentences also end at the Hindi danda (। ॥) and full-width 。！？, and a small list of Hindi function words is ignored. Try `samples/hostel_notice_hindi.txt` and ask "पुस्तकालय कब खुलता है?".
+- **Known limits:** languages written without spaces between words (Chinese, Japanese) are not split into words, and multi-column or table-heavy PDFs may extract in a mixed-up order.
 - **Privacy:** files are read with the browser's File API and never leave the device.
 - In the RAG simulation, suggested questions for an uploaded document come from its most frequent keywords, not from a fixed list.
 - Large documents render a capped number of chunk cards (all chunks are still counted and searched).
@@ -152,9 +154,10 @@ Word counts are a teaching simplification. Production systems measure chunk size
 │   ├── fun.js              # Mascot, XP, badges, confetti, reveal, calm mode
 │   ├── quiz.js             # Knowledge check
 │   └── app.js              # UI wiring for all interactive modules
-├── samples/                # Documents to try uploading (PDF, DOCX, TXT, HTML)
+├── samples/                # Documents to try uploading (PDF, DOCX, TXT, HTML, Hindi TXT)
 ├── tests/
-│   └── engine.test.js      # 28 unit tests: chunking, retrieval, preprocessing
+│   ├── engine.test.js      # 32 unit tests: chunking, retrieval, preprocessing, languages
+│   └── fixtures/           # Locked + broken PDFs for error-handling checks
 ├── docs/
 │   ├── TESTING.md          # Manual QA checklist
 │   └── VIDEO_OUTLINE.md    # 5–7 minute explanation-video script
@@ -164,7 +167,7 @@ Word counts are a teaching simplification. Production systems measure chunk size
 ---
 
 ## Testing
-- **Automated:** `node tests/engine.test.js` runs 28 tests covering empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries and headings, retrieval relevance for every sample question, fragmentation detection, document cleanup (page numbers, hyphenation, wrapped lines, truncation), and retrieval on arbitrary user documents.
+- **Automated:** `node tests/engine.test.js` runs 32 tests covering empty input, single words, overlap clamping, invalid numbers, no empty or duplicate chunks, full coverage, stats accuracy, sentence integrity, paragraph boundaries and headings, retrieval relevance for every sample question, fragmentation detection, document cleanup (page numbers, hyphenation, wrapped lines, truncation), retrieval on arbitrary user documents, Hindi sentence splitting and retrieval, and accent-insensitive matching.
 - **Manual:** see [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Why "PRISM"?

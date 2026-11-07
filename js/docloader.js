@@ -39,7 +39,7 @@
     t = t.replace(/^[ \t]*(?:-\s*)?(?:page\s*)?\d{1,4}(?:\s*(?:of|\/)\s*\d{1,4})?(?:\s*-)?[ \t]*$/gim, () => { report.pageNumbers++; return ''; });
 
     // 3. Words broken across lines by hyphenation ("infor-\nmation" → "information")
-    t = t.replace(/([A-Za-z])-\n[ \t]*([a-z])/g, (m, a, b) => { report.hyphenBreaks++; return a + b; });
+    t = t.replace(/(\p{L})-\n[ \t]*(\p{Ll})/gu, (m, a, b) => { report.hyphenBreaks++; return a + b; });
 
     // 4. Collapse spaces/tabs, trim each line
     t = t.replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n');
@@ -97,7 +97,14 @@
     await loadScript(LIBS.pdf);
     const pdfjs = root.pdfjsLib;
     pdfjs.GlobalWorkerOptions.workerSrc = LIBS.pdfWorker;
-    const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    let pdf;
+    try {
+      pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    } catch (e) {
+      if (e && e.name === 'PasswordException') throw new Error('This PDF is password-protected, so its text cannot be read. Open it, save or print it as a new PDF without a password, and upload that copy.');
+      if (e && (e.name === 'InvalidPDFException' || e.name === 'FormatError')) throw new Error('This file does not look like a valid PDF — it may be damaged. Try exporting it again.');
+      throw e;
+    }
     const pages = [];
     for (let p = 1; p <= pdf.numPages; p++) {
       const page = await pdf.getPage(p);

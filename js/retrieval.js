@@ -22,7 +22,10 @@
     'and or but if then so than too very can could should would will shall may might ' +
     'must how when where why there here all any each some no not only own same ' +
     'just also as up out off again once get got please tell know need want much many ' +
-    'there s'
+    'there s ' +
+    // common Hindi function words (is, of, in, when, what, how many, …)
+    'है हैं था थी थे हो का की के को में से पर और या भी तो कब क्या कौन कैसे कहाँ कहां ' +
+    'कितना कितनी कितने यह वह ये वे मैं मुझे मेरा मेरी हम आप'
   ).split(/\s+/));
 
   // A tiny, VISIBLE synonym list. Keyword search cannot understand meaning,
@@ -50,10 +53,20 @@
   }
 
   /** Lower-case, strip punctuation, drop stopwords, stem. */
+  /**
+   * Normalise one word for matching, in ANY language:
+   *  - lower-case, Unicode-normalised (NFKC)
+   *  - accents removed from Latin letters ("café" → "cafe"); other scripts'
+   *    vowel signs (e.g. Hindi मात्रा) are kept, because they change the word
+   *  - punctuation stripped, letters/marks/digits of every script kept
+   *  - English-only stemming for plain a–z words
+   */
   function normalize(word) {
-    const w = String(word).toLowerCase().replace(/[^a-z0-9%]/g, '');
+    let w = String(word).normalize('NFKC').toLowerCase();
+    w = w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC');
+    w = w.replace(/[^\p{L}\p{M}\p{N}%]/gu, '');
     if (!w || STOPWORDS.has(w)) return '';
-    return stem(w);
+    return /^[a-z]+$/.test(w) ? stem(w) : w;
   }
 
   /** Turn a query into normalized terms + synonym expansions (shown to the student). */

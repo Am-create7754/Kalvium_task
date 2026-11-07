@@ -490,9 +490,9 @@
     const counts = new Map(), surface = new Map();
     E.toWords(text).forEach((w) => {
       const t = R.normalize(w);
-      if (!t || t.length < 4 || /^\d/.test(t)) return;
+      if (!t || Array.from(t).length < 3 || /^\d/.test(t)) return;
       counts.set(t, (counts.get(t) || 0) + 1);
-      const s = w.toLowerCase().replace(/[^a-z0-9%-]/g, '');
+      const s = w.toLowerCase().replace(/[^\p{L}\p{M}\p{N}%-]/gu, '');
       const m = surface.get(t) || new Map();
       m.set(s, (m.get(s) || 0) + 1);
       surface.set(t, m);

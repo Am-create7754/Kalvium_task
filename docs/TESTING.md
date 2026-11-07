@@ -1,6 +1,6 @@
 # PRISM — Testing checklist
 
-Automated: `node tests/engine.test.js` → **28 tests passed**.
+Automated: `node tests/engine.test.js` → **32 tests passed**.
 Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 
 | # | Check | How to verify | Result |
@@ -39,6 +39,14 @@ Manual checks were run in Chromium at 1280×800 (desktop) and 375×812 (mobile).
 | 28 | Error handling | `.xyz` → "Unsupported file type"; asking with no document → prompt to load one; empty paste → warning | ✅ |
 | 29 | Use Lab text / back to sample | Lab text loads into RAG; switching back restores the 5 sample questions | ✅ |
 | 30 | Large documents | 50,000-word cap with notice; Lab shows the first 200 chunk cards and the first 4,000 map words; stats include everything | ✅ |
+
+### Language & error checks
+| # | Check | How to verify | Result |
+|---|---|---|---|
+| 39 | Hindi document | `samples/hostel_notice_hindi.txt`: 5 chunks, 0 mid-sentence cuts; library / books / gate questions retrieve the right sentence; topic chips shown in Hindi | ✅ |
+| 40 | Accents | "cafe" finds "café" | ✅ |
+| 41 | Password-protected PDF | `tests/fixtures/locked.pdf` → clear "password-protected" message | ✅ |
+| 42 | Damaged PDF | `tests/fixtures/broken.pdf` → "does not look like a valid PDF" message | ✅ |
 
 ### Play layer checks
 | # | Check | How to verify | Result |

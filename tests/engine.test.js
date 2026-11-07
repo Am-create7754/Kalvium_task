@@ -220,4 +220,39 @@ test('headings without a full stop do not merge into the next sentence', () => {
   assert.ok(q.answer.some((a) => a.text === 'The space opens at 7 AM on weekdays.' && a.complete));
 });
 
+console.log('\nOther languages');
+const fs = require('fs');
+const HINDI = fs.readFileSync(require('path').join(__dirname, '../samples/hostel_notice_hindi.txt'), 'utf8');
+
+test('Hindi: danda (।) ends sentences; sentence chunks stay whole', () => {
+  const doc = D.cleanText(HINDI).text;
+  const r = E.chunkText(doc, { strategy: 'sentence', size: 25, overlap: 0 });
+  assert.strictEqual(r.stats.midSentenceBreaks, 0);
+  assert.ok(E.toSentences(E.toWords('पहला वाक्य है। दूसरा वाक्य है।')).length === 2);
+});
+
+test('Hindi: questions retrieve the right sentence', () => {
+  const doc = D.cleanText(HINDI).text;
+  const opts = { strategy: 'sentence', size: 40, overlap: 0 };
+  const lib = R.retrieve(doc, 'पुस्तकालय कब खुलता है?', opts, 3);
+  assert.deepStrictEqual(lib.terms.all, ['पुस्तकालय', 'खुलता']);
+  assert.ok(lib.answer.some((a) => a.text.includes('पुस्तकालय सुबह 8 बजे खुलता है')), JSON.stringify(lib.answer));
+  const gate = R.retrieve(doc, 'मुख्य द्वार कितने बजे बंद होता है?', opts, 3);
+  assert.ok(gate.results[0].chunk.text.includes('10:30'));
+});
+
+test('accents: "cafe" matches "café", vowel signs in Hindi are kept', () => {
+  assert.strictEqual(R.normalize('Café'), 'cafe');
+  assert.strictEqual(R.normalize('étudiants'), 'etudiant');
+  assert.strictEqual(R.normalize('किताबें'), 'किताबें');
+  const r = R.retrieve('Le café ouvre à 8 heures. La bibliothèque ferme à 20 heures.', 'cafe', { strategy: 'sentence', size: 20, overlap: 0 }, 3);
+  assert.ok(r.results.length && r.results[0].chunk.text.includes('café'));
+});
+
+test('English behaviour unchanged by Unicode support', () => {
+  assert.strictEqual(R.normalize('Timings?'), 'timing');
+  assert.strictEqual(R.normalize('75%'), '75%');
+  assert.strictEqual(R.normalize('the'), '');
+});
+
 console.log('\n' + passed + ' tests passed' + (process.exitCode ? ' — SOME FAILED' : '') + '\n');
